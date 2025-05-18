@@ -131,13 +131,27 @@ window.addEventListener('load', () => {
     }
 });
 
-// Add smooth page transitions
+// Add optimized page transitions
 document.addEventListener('DOMContentLoaded', function() {
-    // Add transition class to all links
+    // Preload pages when hovering over links
     const links = document.querySelectorAll('a:not([target="_blank"])');
     links.forEach(link => {
         // Only apply to internal links
         if (link.hostname === window.location.hostname) {
+            // Preload on hover
+            link.addEventListener('mouseenter', function() {
+                const href = this.getAttribute('href');
+                // Skip for anchors on the same page
+                if (href.startsWith('#')) return;
+                
+                // Preload the page
+                const preloadLink = document.createElement('link');
+                preloadLink.rel = 'prefetch';
+                preloadLink.href = href;
+                document.head.appendChild(preloadLink);
+            });
+            
+            // Handle click with optimized transition
             link.addEventListener('click', function(e) {
                 // Skip if modifier keys are pressed
                 if (e.metaKey || e.ctrlKey) return;
@@ -148,22 +162,35 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 e.preventDefault();
                 
-                // Show loading overlay
+                // Show loading overlay with reduced delay
                 const loadingOverlay = document.getElementById('loading-overlay');
                 if (loadingOverlay) {
                     loadingOverlay.style.display = 'flex';
-                    setTimeout(() => {
+                    requestAnimationFrame(() => {
                         loadingOverlay.style.opacity = '1';
-                    }, 10);
+                    });
                 }
                 
-                // Navigate after a short delay
+                // Navigate with minimal delay
                 setTimeout(() => {
                     window.location.href = href;
-                }, 300);
+                }, 150); // Reduced from 300ms to 150ms for faster response
             });
         }
     });
+    
+    // Use requestIdleCallback to preload common pages when browser is idle
+    if ('requestIdleCallback' in window) {
+        requestIdleCallback(() => {
+            const commonPages = ['index.html', 'login.html', 'register.html'];
+            commonPages.forEach(page => {
+                const link = document.createElement('link');
+                link.rel = 'prefetch';
+                link.href = page;
+                document.head.appendChild(link);
+            });
+        });
+    }
 });
 
 // Mobile menu toggle (for responsive design)

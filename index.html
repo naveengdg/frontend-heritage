@@ -23,13 +23,23 @@
     
     <!-- Welcome Modal Styles -->
     <style>
+        /* Make main content visible but blurred when modal is shown */
+        #main-content.blur-background {
+            filter: blur(8px);
+            pointer-events: none;
+            user-select: none;
+            display: block !important;
+        }
+        
         #welcome-modal {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
+            background-color: rgba(0, 0, 0, 0.65);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -118,7 +128,12 @@
             justify-content: center;
             align-items: center;
             z-index: 10000;
-            transition: opacity 0.3s ease;
+            transition: opacity 0.2s ease; /* Faster transition */
+            will-change: opacity; /* Performance optimization */
+            transform: translateZ(0); /* Hardware acceleration */
+            backface-visibility: hidden; /* Prevent flickering */
+            -webkit-backface-visibility: hidden; /* For Safari */
+            perspective: 1000; /* Additional performance boost */
         }
         
         .spinner {
@@ -561,7 +576,8 @@
                 // User is logged in
                 // Hide the welcome modal
                 welcomeModal.classList.add('hide-modal');
-                // Show the main content
+                // Show the main content normally
+                mainContent.classList.remove('blur-background');
                 mainContent.style.display = 'block';
                 document.body.style.overflow = 'auto'; // Enable scrolling
                 
@@ -572,10 +588,11 @@
                 }
             } else {
                 // User is not logged in
-                // Show the welcome modal
+                // Show the welcome modal with blurred background
                 welcomeModal.classList.remove('hide-modal');
-                // Hide the main content
-                mainContent.style.display = 'none';
+                // Show but blur the main content
+                mainContent.style.display = 'block';
+                mainContent.classList.add('blur-background');
                 document.body.style.overflow = 'hidden'; // Disable scrolling
             }
         }
