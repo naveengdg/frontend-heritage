@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Map | Heritage Explorer</title>
+    <link rel="stylesheet" href="assets/css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
+    <style>
+        .map-feature-container {
+            max-width: 600px;
+            margin: 120px auto 40px auto;
+            background: #fff8e7;
+            border-radius: 24px;
+            box-shadow: 0 8px 32px rgba(139, 69, 19, 0.18), 0 1.5px 12px 2px rgba(40,53,147,0.08);
+            padding: 2.5rem 1.5rem 1.5rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            transition: box-shadow 0.35s cubic-bezier(.77,0,.18,1), transform 0.25s cubic-bezier(.77,0,.18,1);
+        }
+        .map-feature-container:hover {
+            box-shadow: 0 16px 48px 0 rgba(139, 69, 19, 0.28), 0 4px 24px 2px rgba(40,53,147,0.13);
+            transform: translateY(-8px) scale(1.015);
+        }
+        .map-feature-header {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+        .map-feature-header h2 {
+            font-size: 2rem;
+            background: linear-gradient(90deg, #FFD700 0%, #8B4513 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+        .map-feature-header p {
+            color: #8B4513;
+            font-size: 1.1rem;
+        }
+        .map-preview {
+            width: 50vw;
+            max-width: 600px;
+            min-width: 220px;
+            height: 30vw;
+            max-height: 350px;
+            min-height: 120px;
+            border-radius: 16px;
+            box-shadow: 0 2px 8px rgba(139, 69, 19, 0.10);
+            overflow: hidden;
+            margin-bottom: 1.2rem;
+            cursor: pointer;
+            transition: box-shadow 0.2s;
+        }
+        .map-preview:hover {
+            box-shadow: 0 4px 16px rgba(40, 53, 147, 0.18);
+        }
+        .map-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        .open-map-btn {
+            padding: 0.7rem 1.5rem;
+            border-radius: 20px;
+            border: none;
+            background: linear-gradient(45deg, #FFD700, #8B4513);
+            color: #fff;
+            font-weight: 700;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.2s;
+            box-shadow: 0 2px 8px rgba(139,69,19,0.10);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none !important;
+        }
+        .open-map-btn:hover {
+            background: linear-gradient(45deg, #8B4513, #FFD700);
+            transform: translateY(-2px) scale(1.04);
+        }
+        /* Modal styles */
+        .map-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0; top: 0; width: 100vw; height: 100vh;
+            background: rgba(40,53,147,0.12);
+            align-items: center;
+            justify-content: center;
+        }
+        .map-modal.active {
+            display: flex;
+        }
+        .map-modal-content {
+            background: #fff;
+            border-radius: 18px;
+            box-shadow: 0 8px 32px rgba(40,53,147,0.18);
+            padding: 0.5rem;
+            max-width: 90vw;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+        .map-modal iframe {
+            width: 80vw;
+            height: 70vh;
+            border: none;
+            border-radius: 12px;
+        }
+        .close-map-btn {
+            background: #FFD700;
+            color: #8B4513;
+            border: none;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            font-size: 1.3rem;
+            cursor: pointer;
+            margin-bottom: 0.5rem;
+            align-self: flex-end;
+            box-shadow: 0 2px 8px rgba(139,69,19,0.10);
+            transition: background 0.2s;
+        }
+        .close-map-btn:hover {
+            background: #8B4513;
+            color: #FFD700;
+        }
+        @media (max-width: 700px) {
+            .map-feature-container { max-width: 98vw; padding: 1.2rem 0.2rem; }
+            .map-preview { width: 98vw; height: 28vw; min-height: 80px; }
+            .map-modal iframe { width: 96vw; height: 60vh; }
+            .map-modal-content #full-heritage-map {
+                width: 98vw;
+                height: 62vh;
+                min-height: 200px;
+                max-height: 500px;
+                margin-top: 0px;
+            }
+        }
+        .back-btn {
+            position: relative;
+            margin: 0px 0 0 0;
+            left: 0;
+            top: 0;
+            z-index: 1100;
+            background: linear-gradient(45deg, #FFD700, #8B4513);
+            color: #fff;
+            border: none;
+            border-radius: 20px;
+            padding: 0.5rem 1.2rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(139,69,19,0.10);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: background 0.2s, transform 0.2s;
+        }
+        .back-btn:hover {
+            background: linear-gradient(45deg, #8B4513, #FFD700);
+            color: #fff;
+            transform: translateY(-2px) scale(1.04);
+        }
+        .navbar + .back-btn {
+            margin-top: 0.5rem;
+            margin-bottom: 0.5rem;
+            display: inline-flex;
+        }
+        .map-search-bar {
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto 1rem auto;
+            display: flex;
+            gap: 0.5rem;
+        }
+        .map-search-bar input {
+            flex: 1;
+            padding: 0.6rem 1rem;
+            border-radius: 16px;
+            border: 2px solid #B8860B;
+            font-size: 1rem;
+            font-family: 'Poppins', sans-serif;
+            outline: none;
+            background: #fff;
+            color: #8B4513;
+            transition: border 0.2s;
+        }
+        .map-search-bar input:focus {
+            border: 2px solid #283593;
+        }
+        .map-search-bar button {
+            padding: 0.6rem 1.2rem;
+            border-radius: 16px;
+            border: none;
+            background: linear-gradient(45deg, #FFD700, #8B4513);
+            color: #fff;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.2s;
+            box-shadow: 0 2px 8px rgba(139,69,19,0.10);
+        }
+        .map-search-bar button:hover {
+            background: linear-gradient(45deg, #8B4513, #FFD700);
+            transform: translateY(-2px) scale(1.04);
+        }
+        #heritage-map {
+            width: 40vw;
+            max-width: 500px;
+            min-width: 200px;
+            height: 24vw;
+            max-height: 300px;
+            min-height: 120px;
+            border-radius: 16px;
+            box-shadow: 0 2px 8px rgba(139, 69, 19, 0.10);
+            margin-bottom: 1.2rem;
+            z-index: 1;
+        }
+        @media (max-width: 700px) {
+            .map-feature-container { max-width: 98vw; padding: 1.2rem 0.2rem; }
+            #heritage-map { width: 98vw; height: 38vw; min-height: 100px; }
+        }
+        a.back-btn {
+            text-decoration: none !important;
+        }
+        #search-suggestions {
+            background: #fff8e7;
+            border-radius: 14px;
+            box-shadow: 0 4px 24px rgba(139,69,19,0.13);
+            margin: 0 0 1rem 0;
+            list-style: none;
+            padding: 0;
+            display: none; /* or block when visible */
+            overflow: hidden;
+            border: 1.5px solid #e2cfa3;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="logo">
+            <img src="assets/images/ChatGPT Image May 12, 2025, 07_14_14 PM.png" alt="Logo">
+            <span>Heritage Explorer</span>
+        </div>
+        <div class="nav-links">
+            <a href="index.html#home" data-i18n="nav_home">Home</a>
+            <a href="index.html#sites" data-i18n="nav_sites">Heritage Sites</a>
+            <a href="index.html#about" data-i18n="nav_about">About</a>
+            <a href="index.html#contact" data-i18n="nav_contact">Contact</a>
+        </div>
+        <div class="language-selector">
+            <select id="language-switcher">
+                <option value="en" data-i18n="lang_en">English</option>
+                <option value="ta" data-i18n="lang_ta">தமிழ்</option>
+            </select>
+        </div>
+    </nav>
+    <main>
+        <div class="map-feature-container">
+            <div class="map-feature-header">
+                <h2 data-i18n="map_title">Interactive Heritage Map</h2>
+                <p data-i18n="map_desc">Explore Tamil Nadu's heritage sites in real time. Click the map to open and navigate!</p>
+            </div>
+            <form class="map-search-bar" id="map-search-form" onsubmit="return false;" style="margin-bottom:1.2rem;">
+                <div style="position:relative;flex:1;">
+                    <input type="text" id="map-search-input" data-i18n-placeholder="search_placeholder" placeholder="Search for a site..." aria-label="Search for a site" autocomplete="off" style="flex:1;width:100%;padding-right:2.2rem;">
+                    <svg id="toggle-suggestions-icon" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);cursor:pointer;z-index:2;transition:transform 0.2s;"><path d="M5 8L10 13L15 8" stroke="#b8860b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </div>
+                <button type="submit" id="map-search-btn" title="Search" style="display:flex;align-items:center;justify-content:center;gap:0.3rem;">
+                    <i class="fas fa-search"></i>
+                </button>
+            </form>
+            <ul id="search-suggestions" style="background:#fff8e7;border-radius:14px;box-shadow:0 4px 24px rgba(139,69,19,0.13);margin:0 0 1rem 0;list-style:none;padding:0;display:none;overflow:hidden;border:1.5px solid #e2cfa3;"></ul>
+            <div id="heritage-map"></div>
+            <button class="open-map-btn" id="open-map-btn"><i class="fas fa-map-marked-alt"></i> <span data-i18n="open_map_btn">Show Full Map</span></button>
+        </div>
+    </main>
+    <div class="map-modal" id="map-modal">
+      <div class="map-modal-content">
+        <div style="width:100%;display:flex;flex-direction:column;align-items:center;gap:0.5rem;margin-top:10px;z-index:1101;backdrop-filter:blur(6px);background:rgba(255,248,231,0.85);border-radius:18px;box-shadow:0 4px 24px rgba(139,69,19,0.13);padding:0.7rem 0.5rem 0.7rem 0.5rem;max-width:96vw;position:relative;top:0;left:50%;transform:translateX(-50%);">
+          <div style="width:100%;display:flex;justify-content:flex-end;align-items:center;">
+            <button class="close-map-btn" id="close-map-btn" title="Close" style="background:#FFD700;color:#8B4513;border:none;border-radius:50%;width:36px;height:36px;font-size:1.3rem;cursor:pointer;box-shadow:0 2px 8px rgba(139,69,19,0.10);transition:background 0.2s;align-self:flex-start;">&times;</button>
+          </div>
+          <div id="distance-info" style="background:rgba(255,255,255,0.85);border-radius:16px;padding:0.7rem 1.5rem;font-weight:600;color:#8B4513;box-shadow:0 2px 8px rgba(139,69,19,0.10);font-size:1.1rem;display:none;min-width:220px;text-align:center;max-width:90vw;backdrop-filter:blur(2px);" data-i18n-dynamic="distance_to"></div>
+          <button id="start-drive-btn" data-i18n="start_drive_btn" style="background:linear-gradient(45deg,#FFD700,#8B4513);color:#fff;border:none;border-radius:16px;padding:0.7rem 1.5rem;font-weight:600;font-size:1.08rem;box-shadow:0 2px 8px rgba(139,69,19,0.10);cursor:pointer;display:none;align-items:center;gap:0.6rem;transition:background 0.18s;max-width:90vw;"><i class="fas fa-route"></i> Start Drive</button>
+        </div>
+        <div id="full-heritage-map" style="width:80vw;height:72vh;min-width:300px;min-height:320px;max-height:700px;border-radius:12px;margin-top:0px;"></div>
+      </div>
+    </div>
+    <!-- Back to Sites Button -->
+    <a href="index.html#sites" class="back-to-sites-btn" id="back-to-sites-btn" data-i18n="back_to_sites" style="position:fixed;left:18px;bottom:18px;z-index:1200;background:linear-gradient(45deg,#FFD700,#8B4513);color:#fff;font-weight:600;font-size:0.95rem;padding:0.45rem 1rem;border-radius:16px;box-shadow:0 2px 8px rgba(139,69,19,0.13);display:flex;align-items:center;gap:0.5rem;text-decoration:none;transition:background 0.2s,transform 0.2s;min-width:unset;min-height:unset;">
+      <i class="fas fa-arrow-left" style="font-size:1em;"></i> <span data-i18n="back_to_sites">Back to Sites</span>
+    </a>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+    <script src="assets/js/script.js"></script>
+    <script>
+      // Initialize the Leaflet map
+      const map = L.map('heritage-map').setView([10.7905, 78.7047], 7); // Centered on Tamil Nadu
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+      }).addTo(map);
+      // Add markers for heritage sites
+      const siteMarkers = [
+        { name: 'Meenakshi Temple, Madurai', coords: [9.9195, 78.1195] },
+        { name: 'Thanjavur Palace', coords: [10.7867, 79.1378] },
+        { name: 'Vellore Fort', coords: [12.9165, 79.1325] },
+        { name: 'Brihadeeswarar Temple, Thanjavur', coords: [10.7828, 79.1310] },
+        { name: 'Shore Temple, Mahabalipuram', coords: [12.6208, 80.1932] },
+        { name: 'Ramanathaswamy Temple, Rameswaram', coords: [9.2882, 79.3174] },
+        { name: 'Ekambareswarar Temple, Kanchipuram', coords: [12.8352, 79.7042] },
+        { name: 'Chettinad Mansions, Karaikudi', coords: [10.0667, 78.7677] },
+        { name: 'Gangaikonda Cholapuram', coords: [11.2000, 79.4500] },
+        { name: 'Airavatesvara Temple, Darasuram', coords: [10.9634, 79.3247] },
+        { name: 'Rockfort Temple, Tiruchirapalli', coords: [10.8306, 78.6928] },
+        { name: 'Kapaleeshwarar Temple, Chennai', coords: [13.0337, 80.2686] },
+        { name: 'Arunachaleswarar Temple, Tiruvannamalai', coords: [12.2253, 79.0747] },
+        { name: 'Kumbakonam Temples', coords: [10.9620, 79.3887] },
+        { name: 'Srivilliputhur Andal Temple', coords: [9.5122, 77.6336] },
+        { name: 'Chidambaram Nataraja Temple', coords: [11.3991, 79.6937] },
+        { name: 'Madurai Gandhi Museum', coords: [9.9366, 78.1411] },
+        { name: 'Dhanushkodi', coords: [9.1626, 79.4942] },
+      ];
+      const leafletMarkers = siteMarkers.map(site => {
+        const marker = L.marker(site.coords).addTo(map).bindPopup(site.name);
+        marker.siteName = site.name;
+        return marker;
+      });
+
+      // Search functionality
+      const searchForm = document.getElementById('map-search-form');
+      const searchInput = document.getElementById('map-search-input');
+      searchForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const query = searchInput.value.trim().toLowerCase();
+        if (!query) return;
+        let foundMarker = null;
+        let foundCoords = null;
+        let foundName = null;
+        leafletMarkers.forEach(marker => {
+          if (marker.siteName.toLowerCase().includes(query)) {
+            foundMarker = marker;
+            foundCoords = marker.getLatLng();
+            foundName = marker.siteName;
+          }
+        });
+        // If not a heritage site, geocode
+        if (!foundMarker) {
+          try {
+            const resp = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query + ', Tamil Nadu')}&addressdetails=1&limit=1`);
+            const data = await resp.json();
+            if (data.length > 0) {
+              foundCoords = [parseFloat(data[0].lat), parseFloat(data[0].lon)];
+              foundName = data[0].display_name;
+            }
+          } catch {}
+        }
+        if (!foundCoords) {
+          alert('No matching place found.');
+          return;
+        }
+        // Open full map modal and zoom to marker/coords
+        const mapModal = document.getElementById('map-modal');
+        mapModal.classList.add('active');
+        setTimeout(async () => {
+          if (!fullMap) {
+            fullMap = L.map('full-heritage-map').setView(foundCoords, 13);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+              attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(fullMap);
+            fullMapMarkers = siteMarkers.map(site => {
+              const marker = L.marker(site.coords).addTo(fullMap).bindPopup(site.name);
+              marker.siteName = site.name;
+              return marker;
+            });
+          } else {
+            fullMap.setView(foundCoords, 13, { animate: true });
+            fullMap.invalidateSize();
+          }
+          // Remove previous route line and temp marker if any
+          if (routeLine) { fullMap.removeLayer(routeLine); routeLine = null; }
+          if (tempMarker) { fullMap.removeLayer(tempMarker); tempMarker = null; }
+          // Find the marker in fullMapMarkers
+          let fullMarker = null;
+          fullMapMarkers.forEach(marker => {
+            if (marker.siteName.toLowerCase() === foundName.toLowerCase()) {
+              fullMarker = marker;
+            }
+          });
+          if (!fullMarker) {
+            // Not a heritage site, add temp marker
+            tempMarker = L.marker(foundCoords, {icon: L.icon({iconUrl: 'https://cdn-icons-png.flaticon.com/512/854/854878.png', iconSize: [32,32], iconAnchor: [16,32]})}).addTo(fullMap).bindPopup(foundName);
+            tempMarker.openPopup();
+          } else {
+            fullMarker.openPopup();
+          }
+          // Get user location and show distance
+          if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(function(pos) {
+              const userLat = pos.coords.latitude;
+              const userLng = pos.coords.longitude;
+              const destLat = foundCoords.lat || foundCoords[0];
+              const destLng = foundCoords.lng || foundCoords[1];
+              const R = 6371; // km
+              const dLat = (destLat-userLat) * Math.PI/180;
+              const dLng = (destLng-userLng) * Math.PI/180;
+              const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                        Math.cos(userLat * Math.PI/180) * Math.cos(destLat * Math.PI/180) *
+                        Math.sin(dLng/2) * Math.sin(dLng/2);
+              const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+              const distance = R * c;
+              // Show distance in info box
+              const distanceInfo = document.getElementById('distance-info');
+              lastDistanceDestination = foundName;
+              lastDistanceValue = distance.toFixed(2);
+              lastDistanceInfo = 'distance';
+              function setDistanceInfoBox() {
+                const lang = (typeof getCurrentLanguage === 'function') ? getCurrentLanguage() : (localStorage.getItem('heritage_lang') || 'en');
+                if (lastDistanceInfo === 'distance') {
+                  let template = (translations && translations[lang] && translations[lang].distance_to) ? translations[lang].distance_to : 'Distance from your location to "{destination}": {distance} km';
+                  distanceInfo.textContent = template.replace('{destination}', lastDistanceDestination).replace('{distance}', lastDistanceValue);
+                } else if (lastDistanceInfo === 'could_not_get_location') {
+                  distanceInfo.textContent = (translations && translations[lang] && translations[lang].could_not_get_location) ? translations[lang].could_not_get_location : 'Could not get your location.';
+                } else if (lastDistanceInfo === 'geolocation_not_supported') {
+                  distanceInfo.textContent = (translations && translations[lang] && translations[lang].geolocation_not_supported) ? translations[lang].geolocation_not_supported : 'Geolocation not supported.';
+                } else {
+                  distanceInfo.textContent = '';
+                }
+              }
+              setDistanceInfoBox();
+              distanceInfo.style.display = 'block';
+              // Show Start Drive button
+              lastDriveCoords = [destLat, destLng];
+              lastDriveUserCoords = [userLat, userLng];
+              const startDriveBtn = document.getElementById('start-drive-btn');
+              startDriveBtn.style.display = 'inline-flex';
+              startDriveBtn.onclick = function() {
+                const gmapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${userLat},${userLng}&destination=${destLat},${destLng}&travelmode=driving`;
+                window.open(gmapsUrl, '_blank');
+              };
+              // Draw route line
+              routeLine = L.polyline([[userLat, userLng], [destLat, destLng]], {color: '#B8860B', weight: 5, opacity: 0.8, dashArray: '10,8'}).addTo(fullMap);
+              // Optionally, add a marker for user location
+              if (!fullMap._userLocationMarker) {
+                fullMap._userLocationMarker = L.marker([userLat, userLng], {icon: L.icon({iconUrl: 'https://cdn-icons-png.flaticon.com/512/64/64113.png', iconSize: [32,32], iconAnchor: [16,32]})}).addTo(fullMap).bindPopup('Your Location');
+              } else {
+                fullMap._userLocationMarker.setLatLng([userLat, userLng]);
+              }
+            }, function() {
+              const distanceInfo = document.getElementById('distance-info');
+              lastDistanceInfo = 'could_not_get_location';
+              setDistanceInfoBox();
+              distanceInfo.style.display = 'block';
+              startDriveBtn.style.display = 'none';
+              if (routeLine) { fullMap.removeLayer(routeLine); routeLine = null; }
+              if (tempMarker) { fullMap.removeLayer(tempMarker); tempMarker = null; }
+            });
+          } else {
+            const distanceInfo = document.getElementById('distance-info');
+            lastDistanceInfo = 'geolocation_not_supported';
+            setDistanceInfoBox();
+            distanceInfo.style.display = 'block';
+            startDriveBtn.style.display = 'none';
+            if (routeLine) { fullMap.removeLayer(routeLine); routeLine = null; }
+            if (tempMarker) { fullMap.removeLayer(tempMarker); tempMarker = null; }
+          }
+        }, 200);
+      });
+      document.getElementById('map-search-btn').addEventListener('click', function() {
+        searchForm.dispatchEvent(new Event('submit'));
+      });
+      searchInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+          searchForm.dispatchEvent(new Event('submit'));
+        }
+      });
+
+      // Modal logic for full map
+      const openMapBtn = document.getElementById('open-map-btn');
+      const closeMapBtn = document.getElementById('close-map-btn');
+      let fullMap = null;
+      let fullMapMarkers = [];
+      let routeLine = null;
+      let tempMarker = null;
+      let lastDriveCoords = null;
+      let lastDriveUserCoords = null;
+      const startDriveBtn = document.getElementById('start-drive-btn');
+      openMapBtn.addEventListener('click', function() {
+        searchForm.dispatchEvent(new Event('submit'));
+      });
+      closeMapBtn.addEventListener('click', function() {
+        const mapModal = document.getElementById('map-modal');
+        mapModal.classList.remove('active');
+        if (routeLine) {
+          fullMap.removeLayer(routeLine);
+          routeLine = null;
+        }
+        if (fullMap && fullMap._userLocationMarker) {
+          fullMap.removeLayer(fullMap._userLocationMarker);
+          fullMap._userLocationMarker = null;
+        }
+        if (tempMarker) {
+          fullMap.removeLayer(tempMarker);
+          tempMarker = null;
+        }
+        // Hide distance info
+        const distanceInfo = document.getElementById('distance-info');
+        distanceInfo.textContent = '';
+        distanceInfo.style.display = 'none';
+        startDriveBtn.style.display = 'none';
+        lastDriveCoords = null;
+        lastDriveUserCoords = null;
+        lastDistanceInfo = null;
+        lastDistanceDestination = null;
+        lastDistanceValue = null;
+      });
+      // Full map search (reuse the same search bar)
+      searchForm.addEventListener('submit', async function(e) {
+        if (!fullMap || !mapModal.classList.contains('active')) return;
+        const query = searchInput.value.trim().toLowerCase();
+        if (!query) return;
+        let foundMarker = null;
+        let foundCoords = null;
+        let foundName = null;
+        fullMapMarkers.forEach(marker => {
+          if (marker.siteName.toLowerCase().includes(query)) {
+            foundMarker = marker;
+            foundCoords = marker.getLatLng();
+            foundName = marker.siteName;
+          }
+        });
+        // If not a heritage site, geocode
+        if (!foundMarker) {
+          try {
+            const resp = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query + ', Tamil Nadu')}&addressdetails=1&limit=1`);
+            const data = await resp.json();
+            if (data.length > 0) {
+              foundCoords = [parseFloat(data[0].lat), parseFloat(data[0].lon)];
+              foundName = data[0].display_name;
+            }
+          } catch {}
+        }
+        if (!foundCoords) {
+          alert('No matching place found.');
+          return;
+        }
+        fullMap.setView(foundCoords, 13, { animate: true });
+        // Remove previous route line and temp marker if any
+        if (routeLine) { fullMap.removeLayer(routeLine); routeLine = null; }
+        if (tempMarker) { fullMap.removeLayer(tempMarker); tempMarker = null; }
+        if (!foundMarker) {
+          // Not a heritage site, add temp marker
+          tempMarker = L.marker(foundCoords, {icon: L.icon({iconUrl: 'https://cdn-icons-png.flaticon.com/512/854/854878.png', iconSize: [32,32], iconAnchor: [16,32]})}).addTo(fullMap).bindPopup(foundName);
+          tempMarker.openPopup();
+        } else {
+          foundMarker.openPopup();
+        }
+        // Get user location and show distance
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(function(pos) {
+            const userLat = pos.coords.latitude;
+            const userLng = pos.coords.longitude;
+            const destLat = foundCoords.lat || foundCoords[0];
+            const destLng = foundCoords.lng || foundCoords[1];
+            const R = 6371; // km
+            const dLat = (destLat-userLat) * Math.PI/180;
+            const dLng = (destLng-userLng) * Math.PI/180;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                      Math.cos(userLat * Math.PI/180) * Math.cos(destLat * Math.PI/180) *
+                      Math.sin(dLng/2) * Math.sin(dLng/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            const distance = R * c;
+            // Show distance in info box
+            const distanceInfo = document.getElementById('distance-info');
+            lastDistanceDestination = foundName;
+            lastDistanceValue = distance.toFixed(2);
+            lastDistanceInfo = 'distance';
+            setDistanceInfoBox();
+            distanceInfo.style.display = 'block';
+            // Show Start Drive button
+            lastDriveCoords = [destLat, destLng];
+            lastDriveUserCoords = [userLat, userLng];
+            startDriveBtn.style.display = 'inline-flex';
+            startDriveBtn.onclick = function() {
+              const gmapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${userLat},${userLng}&destination=${destLat},${destLng}&travelmode=driving`;
+              window.open(gmapsUrl, '_blank');
+            };
+            // Draw route line
+            routeLine = L.polyline([[userLat, userLng], [destLat, destLng]], {color: '#B8860B', weight: 5, opacity: 0.8, dashArray: '10,8'}).addTo(fullMap);
+            // Optionally, add a marker for user location
+            if (!fullMap._userLocationMarker) {
+              fullMap._userLocationMarker = L.marker([userLat, userLng], {icon: L.icon({iconUrl: 'https://cdn-icons-png.flaticon.com/512/64/64113.png', iconSize: [32,32], iconAnchor: [16,32]})}).addTo(fullMap).bindPopup('Your Location');
+            } else {
+              fullMap._userLocationMarker.setLatLng([userLat, userLng]);
+            }
+          }, function() {
+            const distanceInfo = document.getElementById('distance-info');
+            lastDistanceInfo = 'could_not_get_location';
+            setDistanceInfoBox();
+            distanceInfo.style.display = 'block';
+            startDriveBtn.style.display = 'none';
+            if (routeLine) { fullMap.removeLayer(routeLine); routeLine = null; }
+            if (tempMarker) { fullMap.removeLayer(tempMarker); tempMarker = null; }
+          });
+        } else {
+          const distanceInfo = document.getElementById('distance-info');
+          lastDistanceInfo = 'geolocation_not_supported';
+          setDistanceInfoBox();
+          distanceInfo.style.display = 'block';
+          startDriveBtn.style.display = 'none';
+          if (routeLine) { fullMap.removeLayer(routeLine); routeLine = null; }
+          if (tempMarker) { fullMap.removeLayer(tempMarker); tempMarker = null; }
+        }
+      });
+
+      // --- Autocomplete Suggestions ---
+      const cityToHeritage = {
+        'madurai': [
+          { name: 'Meenakshi Temple, Madurai', coords: [9.9195, 78.1195] },
+          { name: 'Madurai Gandhi Museum', coords: [9.9366, 78.1411] }
+        ],
+        'thanjavur': [
+          { name: 'Thanjavur Palace', coords: [10.7867, 79.1378] },
+          { name: 'Brihadeeswarar Temple, Thanjavur', coords: [10.7828, 79.1310] }
+        ],
+        'kanchipuram': [
+          { name: 'Ekambareswarar Temple, Kanchipuram', coords: [12.8352, 79.7042] }
+        ],
+        'vellore': [
+          { name: 'Vellore Fort', coords: [12.9165, 79.1325] }
+        ],
+        'rameswaram': [
+          { name: 'Ramanathaswamy Temple, Rameswaram', coords: [9.2882, 79.3174] },
+          { name: 'Dhanushkodi', coords: [9.1626, 79.4942] }
+        ],
+        'mahabalipuram': [
+          { name: 'Shore Temple, Mahabalipuram', coords: [12.6208, 80.1932] }
+        ],
+        'karaikudi': [
+          { name: 'Chettinad Mansions, Karaikudi', coords: [10.0667, 78.7677] }
+        ],
+        'darasuram': [
+          { name: 'Airavatesvara Temple, Darasuram', coords: [10.9634, 79.3247] }
+        ],
+        'tiruchirapalli': [
+          { name: 'Rockfort Temple, Tiruchirapalli', coords: [10.8306, 78.6928] }
+        ],
+        'chennai': [
+          { name: 'Kapaleeshwarar Temple, Chennai', coords: [13.0337, 80.2686] }
+        ],
+        'tiruvannamalai': [
+          { name: 'Arunachaleswarar Temple, Tiruvannamalai', coords: [12.2253, 79.0747] }
+        ],
+        'kumbakonam': [
+          { name: 'Kumbakonam Temples', coords: [10.9620, 79.3887] }
+        ],
+        'srivilliputhur': [
+          { name: 'Srivilliputhur Andal Temple', coords: [9.5122, 77.6336] }
+        ],
+        'chidambaram': [
+          { name: 'Chidambaram Nataraja Temple', coords: [11.3991, 79.6937] }
+        ],
+        'gangaikonda cholapuram': [
+          { name: 'Gangaikonda Cholapuram', coords: [11.2000, 79.4500] }
+        ]
+      };
+      const suggestionsBox = document.getElementById('search-suggestions');
+      let suggestionsVisible = false;
+
+      async function updateSuggestions() {
+        const query = searchInput.value.trim().toLowerCase();
+        if (!query) {
+          suggestionsBox.style.display = 'none';
+          suggestionsBox.innerHTML = '';
+          return;
+        }
+        // City/region-specific suggestions
+        let citySuggestions = [];
+        Object.keys(cityToHeritage).forEach(city => {
+          if (query.includes(city)) {
+            citySuggestions = cityToHeritage[city].map(site => ({ ...site, isHeritage: true }));
+          }
+        });
+        // If city-specific, only show those
+        if (citySuggestions.length > 0) {
+          suggestionsBox.innerHTML = citySuggestions.map(s => `
+            <li style='padding:0.85rem 1.2rem;cursor:pointer;transition:background 0.18s;font-size:1.07rem;display:flex;align-items:center;gap:0.7rem;border-bottom:1px solid #f3e6d0;'
+                onmouseover="this.style.background='#fff3d6'" onmouseout="this.style.background='none'"
+                data-coords='${s.coords.join(',')}' data-name='${s.name.replace(/'/g, "&apos;")}' data-ish='${s.isHeritage}'>
+              <img src='https://cdn-icons-png.flaticon.com/512/3176/3176297.png' alt='heritage' style='width:20px;height:20px;margin-right:2px;'>
+              <span style='flex:1;'>${s.name}</span>
+            </li>
+          `).join('');
+          suggestionsBox.style.display = 'block';
+          Array.from(suggestionsBox.children).forEach(li => {
+            li.onclick = function() {
+              searchInput.value = this.getAttribute('data-name');
+              suggestionsBox.style.display = 'none';
+              suggestionsVisible = false;
+              this.style.transform = 'rotate(0deg)';
+              searchForm.dispatchEvent(new Event('submit'));
+            };
+          });
+          return;
+        }
+        // Otherwise, show up to 3 relevant heritage sites and 2 geocoded
+        const heritageSuggestions = siteMarkers.filter(site => site.name.toLowerCase().includes(query)).slice(0,3).map(site => ({ name: site.name, coords: site.coords, isHeritage: true }));
+        let geoSuggestions = [];
+        try {
+          const resp = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query + ', Tamil Nadu')}&addressdetails=1&limit=2`);
+          const data = await resp.json();
+          geoSuggestions = data.map(item => ({
+            name: item.display_name,
+            coords: [parseFloat(item.lat), parseFloat(item.lon)],
+            isHeritage: false
+          }));
+        } catch {}
+        const allSuggestions = [...heritageSuggestions, ...geoSuggestions];
+        if (allSuggestions.length === 0) {
+          suggestionsBox.innerHTML = `<li style='padding:1rem 1.2rem;color:#b8860b;text-align:center;font-weight:500;'>No results found</li>`;
+          suggestionsBox.style.display = 'block';
+          return;
+        }
+        suggestionsBox.innerHTML = allSuggestions.map(s => `
+          <li style='padding:0.85rem 1.2rem;cursor:pointer;transition:background 0.18s;font-size:1.07rem;display:flex;align-items:center;gap:0.7rem;border-bottom:1px solid #f3e6d0;'
+              onmouseover="this.style.background='#fff3d6'" onmouseout="this.style.background='none'"
+              data-coords='${s.coords.join(',')}' data-name='${s.name.replace(/'/g, "&apos;")}' data-ish='${s.isHeritage}'>
+            ${s.isHeritage ? `<img src='https://cdn-icons-png.flaticon.com/512/3176/3176297.png' alt='heritage' style='width:20px;height:20px;margin-right:2px;'>` : `<i class='fas fa-map-marker-alt' style='color:#b8860b;font-size:1.1em;'></i>`}
+            <span style='flex:1;'>${s.name}</span>
+          </li>
+        `).join('');
+        suggestionsBox.style.display = 'block';
+        Array.from(suggestionsBox.children).forEach(li => {
+          li.onclick = function() {
+            searchInput.value = this.getAttribute('data-name');
+            suggestionsBox.style.display = 'none';
+            suggestionsVisible = false;
+            this.style.transform = 'rotate(0deg)';
+            searchForm.dispatchEvent(new Event('submit'));
+          };
+        });
+      }
+
+      // Dropdown toggle logic
+      document.getElementById('toggle-suggestions-icon').addEventListener('click', async function() {
+        if (suggestionsVisible) {
+          suggestionsBox.style.display = 'none';
+          suggestionsVisible = false;
+          this.style.transform = 'translateY(-50%)';
+        } else {
+          await updateSuggestions();
+          suggestionsVisible = true;
+          this.style.transform = 'translateY(-50%) rotate(180deg)';
+        }
+      });
+      // Hide suggestions on blur of input (but not when clicking dropdown)
+      searchInput.addEventListener('blur', function() { setTimeout(() => {
+        if (!document.activeElement || document.activeElement !== this) {
+          suggestionsBox.style.display = 'none';
+          suggestionsVisible = false;
+          this.style.transform = 'rotate(0deg)';
+        }
+      }, 200); });
+      // Hide suggestions on form submit
+      searchForm.addEventListener('submit', function() {
+        suggestionsBox.style.display = 'none';
+        suggestionsVisible = false;
+        this.style.transform = 'rotate(0deg)';
+      });
+
+      // Add translation keys for this page
+      if (typeof translations !== 'undefined') {
+        translations.en = {
+          ...translations.en,
+          map_title: "Interactive Heritage Map",
+          map_desc: "Explore Tamil Nadu's heritage sites in real time. Click the map to open and navigate!",
+          search_placeholder: "Search for a site...",
+          start_drive_btn: "Start Drive",
+          no_results: "No results found",
+          distance_to: 'Distance from your location to "{destination}": {distance} km',
+          could_not_get_location: "Could not get your location.",
+          geolocation_not_supported: "Geolocation not supported.",
+          open_map_btn: "Show Full Map",
+          nav_home: "Home",
+          nav_sites: "Heritage Sites",
+          nav_about: "About",
+          nav_contact: "Contact",
+          lang_en: "English",
+          lang_ta: "Tamil"
+        };
+        translations.ta = {
+          ...translations.ta,
+          map_title: "இணையவழி பாரம்பரிய வரைபடம்",
+          map_desc: "தமிழ்நாட்டின் பாரம்பரிய இடங்களை நேரடியாக கண்டறியுங்கள். வரைபடத்தை கிளிக் செய்து வழிநடத்தவும்!",
+          search_placeholder: "இடத்தைத் தேடுங்கள்...",
+          start_drive_btn: "வழிநடத்தல் தொடங்கு",
+          no_results: "முடிவுகள் இல்லை",
+          distance_to: '"{destination}" இடத்திற்கு உங்கள் இருப்பிடத்திலிருந்து தூரம்: {distance} கிமீ',
+          could_not_get_location: "உங்கள் இருப்பிடத்தை பெற முடியவில்லை.",
+          geolocation_not_supported: "புவியியல் இருப்பிடம் ஆதரிக்கப்படவில்லை.",
+          open_map_btn: "முழு வரைபடம் காண்க",
+          nav_home: "முகப்பு",
+          nav_sites: "பாரம்பரிய இடங்கள்",
+          nav_about: "பற்றி",
+          nav_contact: "தொடர்பு",
+          lang_en: "ஆங்கிலம்",
+          lang_ta: "தமிழ்"
+        };
+      }
+      // On DOMContentLoaded, set language and update all translatable elements
+      window.addEventListener('DOMContentLoaded', () => {
+        const lang = (typeof getCurrentLanguage === 'function') ? getCurrentLanguage() : (localStorage.getItem('heritage_lang') || 'en');
+        if (typeof setLanguageSwitcherValue === 'function') setLanguageSwitcherValue(lang);
+        if (typeof updateLanguage === 'function') updateLanguage(lang);
+        setDistanceInfoBox();
+      });
+      // Listen for changes on all language switchers
+      window.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('.language-selector select').forEach(sel => {
+          sel.addEventListener('change', (e) => {
+            const lang = e.target.value;
+            localStorage.setItem('heritage_lang', lang);
+            if (typeof setLanguageSwitcherValue === 'function') setLanguageSwitcherValue(lang);
+            if (typeof updateLanguage === 'function') updateLanguage(lang);
+            setDistanceInfoBox();
+          });
+        });
+      });
+    </script>
+</body>
+</html> 

@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register | Heritage Explorer</title>
+    <link rel="stylesheet" href="assets/css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #FFF8E7 60%, #FFD700 100%);
+            min-height: 100vh;
+        }
+        .register-logo-bar {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin-top: 1.2rem;
+            margin-bottom: -1.2rem;
+            z-index: 2;
+            position: relative;
+        }
+        .register-logo-bar img {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            margin-bottom: 0.3rem;
+            box-shadow: 0 4px 16px rgba(139,69,19,0.10);
+            position: relative;
+            top: 18px;
+        }
+        .register-logo-bar span {
+            font-size: 1.7rem;
+            font-weight: 700;
+            background: linear-gradient(90deg,#FFD700 0%,#8B4513 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-fill-color: transparent;
+            position: relative;
+            top: 12px;
+        }
+        .auth-section {
+            min-height: calc(100vh - 140px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding-top: 80px;
+            padding-bottom: 60px;
+        }
+        .auth-container {
+            background: #fff8e7;
+            border-radius: 48px;
+            box-shadow: 0 8px 32px rgba(139, 69, 19, 0.10), 0 0 0 6px rgba(40, 53, 147, 0.07), 0 0 0 12px rgba(184, 134, 11, 0.06);
+            padding: 2.5rem 2rem 2rem 2rem;
+            max-width: 400px;
+            width: 100%;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            animation: fadeInUp 0.8s cubic-bezier(.4,2,.3,1);
+            margin-top: -32px;
+        }
+        .auth-container h2 {
+            font-size: 2rem;
+            background: linear-gradient(90deg, #FFD700 0%, #8B4513 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-fill-color: transparent;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+        .auth-form {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 1.2rem;
+        }
+        .auth-form input {
+            padding: 1rem;
+            border-radius: 12px;
+            border: 1.5px solid #B8860B;
+            font-size: 1rem;
+            font-family: 'Poppins', sans-serif;
+            background: #fff;
+            color: #7c4a03;
+            transition: border 0.2s, box-shadow 0.2s;
+            outline: none;
+        }
+        .auth-form input:focus {
+            border: 2px solid #8B4513;
+            box-shadow: 0 2px 8px rgba(139, 69, 19, 0.10);
+        }
+        .submit-btn {
+            padding: 1rem;
+            border-radius: 20px;
+            border: none;
+            background: linear-gradient(45deg, #FFD700, #8B4513);
+            color: #fff;
+            font-weight: 700;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 2px 8px rgba(139,69,19,0.10);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .submit-btn:hover, .submit-btn:focus {
+            background: linear-gradient(45deg, #8B4513, #FFD700);
+            color: #fff;
+            transform: translateY(-2px) scale(1.04);
+            box-shadow: 0 4px 16px rgba(139, 69, 19, 0.18);
+        }
+        .auth-container p {
+            margin-top: 1.2rem;
+            color: #7c4a03;
+            font-size: 1rem;
+        }
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(40px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        @media (max-width: 600px) {
+            .auth-container {
+                padding: 1.2rem 0.5rem;
+                max-width: 98vw;
+            }
+        }
+        .login-link {
+            color: #8B4513;
+            font-weight: 600;
+            margin-left: 0.3em;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+        .login-link:hover {
+            color: #B8860B;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Language Switcher Top Right -->
+    <div class="language-selector" style="position:absolute;top:1.2rem;right:2.2rem;z-index:10;">
+        <select id="language-switcher">
+            <option value="en">English</option>
+            <option value="ta">தமிழ்</option>
+        </select>
+    </div>
+    <div class="register-logo-bar">
+        <a href="index.html" style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-decoration:none;">
+            <img src="assets/images/ChatGPT Image May 12, 2025, 07_14_14 PM.png" alt="Logo">
+            <span>Heritage Explorer</span>
+        </a>
+    </div>
+    <section class="auth-section">
+        <div class="auth-container">
+            <h2 data-i18n="register_title"><i class="fas fa-user-plus"></i> Create Your Account</h2>
+            <form class="auth-form" id="register-form">
+                <input type="text" name="name" placeholder="Full Name" required data-i18n-placeholder="your_name">
+                <input type="email" name="email" placeholder="Email Address" required data-i18n-placeholder="your_email">
+                <input type="password" name="password" placeholder="Password" required data-i18n-placeholder="password">
+                <input type="password" name="confirm_password" placeholder="Confirm Password" required data-i18n-placeholder="confirm_password">
+                <button type="submit" class="submit-btn"><span data-i18n="register_btn">Register</span></button>
+            </form>
+            <p style="margin-top:1.2rem;" class="login-link-row">
+                <span data-i18n="already_account">Already have an account?</span>
+                <a href="login.html" class="login-link" data-i18n="login_here">Login here</a>
+            </p>
+        </div>
+    </section>
+    <script src="assets/js/script.js"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('register-form');
+        const msgDiv = document.createElement('div');
+        msgDiv.style.marginTop = '1.2rem';
+        msgDiv.style.fontWeight = '600';
+        msgDiv.style.textAlign = 'center';
+        form.parentNode.appendChild(msgDiv);
+
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            msgDiv.textContent = '';
+            msgDiv.style.color = '#7c4a03';
+            const name = form.name.value.trim();
+            const email = form.email.value.trim();
+            const password = form.password.value;
+            const confirm = form.confirm_password.value;
+            if (!name || !email || !password || !confirm) {
+                msgDiv.textContent = 'All fields are required.';
+                msgDiv.style.color = '#d32f2f';
+                return;
+            }
+            if (password !== confirm) {
+                msgDiv.textContent = 'Passwords do not match.';
+                msgDiv.style.color = '#d32f2f';
+                return;
+            }
+            try {
+                const res = await fetch('https://heritage-backend-yf3u.onrender.com/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, password })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    msgDiv.textContent = data.message || 'Registration successful!';
+                    msgDiv.style.color = '#388e3c';
+                    form.reset();
+                    setTimeout(() => { window.location.href = 'login.html'; }, 1200);
+                } else {
+                    msgDiv.textContent = data.error || 'Registration failed.';
+                    msgDiv.style.color = '#d32f2f';
+                }
+            } catch (err) {
+                msgDiv.textContent = 'Network error. Please try again.';
+                msgDiv.style.color = '#d32f2f';
+            }
+        });
+    });
+    </script>
+</body>
+</html> 
