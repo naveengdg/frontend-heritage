@@ -244,6 +244,7 @@
     <script>
     // Make updateNavbar globally available
     function updateNavbar(loggedIn) {
+        console.log('Updating navbar, logged in:', loggedIn);
         const loginBtn = document.querySelector('.auth-btn.login-btn');
         const registerBtn = document.querySelector('.auth-btn.register-btn');
         const separator = document.querySelector('.auth-separator');
@@ -263,35 +264,62 @@
         }
     }
     document.addEventListener('DOMContentLoaded', function() {
-        // Check for just registered flag
-        if (localStorage.getItem('justRegistered') === '1') {
-            updateNavbar(true);
-            localStorage.removeItem('justRegistered');
+        console.log('DOM loaded, checking login status');
+        
+        // Check if user is logged in from localStorage
+        const isLoggedIn = localStorage.getItem('logged_in') === 'true';
+        const userData = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')) : null;
+        
+        console.log('Login status from localStorage:', isLoggedIn);
+        console.log('User data:', userData);
+        
+        // Update the navbar based on login status
+        updateNavbar(isLoggedIn);
+        
+        // If not logged in, make sure the login modal appears
+        if (!isLoggedIn) {
+            // This will trigger the modal to appear via script.js
+            console.log('Not logged in, should show modal');
+            
+            // Force modal to appear if it doesn't show up automatically
+            setTimeout(function() {
+                if (typeof injectLoginRegisterModal === 'function' && 
+                    typeof showLoginRegisterModal === 'function') {
+                    injectLoginRegisterModal();
+                    showLoginRegisterModal();
+                }
+            }, 500);
+        } else {
+            console.log('User is logged in, hiding modal if present');
             // Hide login/register modal if present
             var modal = document.getElementById('login-register-modal');
-            if (modal) { modal.classList.remove('active'); document.body.classList.remove('modal-blocked'); }
-        } else {
-            // Check session from localStorage
-            const isLoggedIn = localStorage.getItem('logged_in') === 'true';
-            const userData = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')) : null;
-            updateNavbar(isLoggedIn);
+            if (modal) { 
+                modal.classList.remove('active'); 
+                document.body.classList.remove('modal-blocked'); 
+            }
         }
         // Logout button logic
         const logoutBtn = document.getElementById('logout-btn');
-        logoutBtn.addEventListener('click', function() {
-            // Clear localStorage
-            localStorage.removeItem('user');
-            localStorage.removeItem('logged_in');
-            
-            // Notify the server (optional)
-            fetch('https://heritage-backend-yf3u.onrender.com/logout', { method: 'POST' })
-                .then(res => res.json())
-                .catch(err => console.log('Logout notification error:', err));
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', function() {
+                console.log('Logout button clicked');
                 
-            // Update UI
-            updateNavbar(false);
-            window.location.href = 'index.html';
-        });
+                // Clear localStorage
+                localStorage.removeItem('user');
+                localStorage.removeItem('logged_in');
+                
+                // Notify the server (optional)
+                fetch('https://heritage-backend-yf3u.onrender.com/logout', { method: 'POST' })
+                    .then(res => res.json())
+                    .catch(err => console.log('Logout notification error:', err));
+                    
+                // Update UI
+                updateNavbar(false);
+                
+                // Reload the page to show login modal
+                window.location.reload();
+            });
+        }
     });
     </script>
 </body>

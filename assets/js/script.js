@@ -401,130 +401,228 @@ window.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// Session-based navbar logic (universal for all pages)
 document.addEventListener('DOMContentLoaded', function() {
     const loginBtn = document.querySelector('.auth-btn.login-btn');
     const registerBtn = document.querySelector('.auth-btn.register-btn');
     const separator = document.querySelector('.auth-separator');
-    const logoutBtn = document.getElementById('logout-btn');
 
-    function updateNavbar(loggedIn) {
-        if (loginBtn && registerBtn && separator && logoutBtn) {
-            if (loggedIn) {
-                loginBtn.style.display = 'none';
-                registerBtn.style.display = 'none';
-                separator.style.display = 'none';
-                logoutBtn.style.display = 'flex';
-            } else {
-                loginBtn.style.display = 'flex';
-                registerBtn.style.display = 'flex';
-                separator.style.display = 'inline';
-                logoutBtn.style.display = 'none';
+    // Login/Register Modal Logic
+    function injectLoginRegisterModal() {
+        console.log('Injecting login/register modal');
+        if (document.getElementById('login-register-modal')) {
+            console.log('Modal already exists, not injecting again');
+            return;
+        }
+        
+        const modalHTML = `
+        <div id="login-register-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-tabs">
+                    <button class="tab-btn active" data-tab="login">Login</button>
+                    <button class="tab-btn" data-tab="register">Register</button>
+                </div>
+                <div class="tab-content">
+                    <div id="login-tab" class="tab-pane active">
+                        <h2>Login</h2>
+                        <form id="login-form">
+                            <div class="form-group">
+                                <label for="login-email">Email</label>
+                                <input type="email" id="login-email" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="login-password">Password</label>
+                                <input type="password" id="login-password" required>
+                            </div>
+                            <div class="form-group">
+                                <button type="submit" class="btn primary-btn">Login</button>
+                            </div>
+                            <div id="login-message" class="message"></div>
+                        </form>
+                    </div>
+                    <div id="register-tab" class="tab-pane">
+                        <h2>Register</h2>
+                        <form id="register-form">
+                            <div class="form-group">
+                                <label for="register-name">Full Name</label>
+                                <input type="text" id="register-name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="register-email">Email</label>
+                                <input type="email" id="register-email" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="register-password">Password</label>
+                                <input type="password" id="register-password" required>
+                                <small>At least 8 characters with letters and numbers</small>
+                            </div>
+                            <div class="form-group">
+                                <button type="submit" class="btn primary-btn">Register</button>
+                            </div>
+                            <div id="register-message" class="message"></div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        `;
+        
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+        console.log('Modal HTML injected');
+        
+        // Tab switching logic
+        const tabBtns = document.querySelectorAll('.tab-btn');
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                // Remove active class from all tabs
+                tabBtns.forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
+                
+                // Add active class to clicked tab
+                this.classList.add('active');
+                document.getElementById(`${this.dataset.tab}-tab`).classList.add('active');
+            });
+        });
+        
+        // Form submission logic
+        const loginForm = document.getElementById('login-form');
+        const registerForm = document.getElementById('register-form');
+        
+        loginForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            const messageEl = document.getElementById('login-message');
+            
+            try {
+                const res = await fetch('https://heritage-backend-yf3u.onrender.com/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const data = await res.json();
+                console.log('Login response:', data);
+                
+                if (res.ok) {
+                    messageEl.textContent = data.message;
+                    messageEl.className = 'message success';
+                    
+                    // Store user data in localStorage
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    localStorage.setItem('logged_in', 'true');
+                    console.log('User data saved to localStorage');
+                    
+                    // Update UI
+                    setTimeout(() => {
+                        document.getElementById('login-register-modal').classList.remove('active');
+                        document.body.classList.remove('modal-blocked');
+                        // Reload the page to update the navbar
+                        window.location.reload();
+                    }, 1000);
+                } else {
+                    messageEl.textContent = data.message || 'Login failed';
+                    messageEl.className = 'message error';
+                }
+            } catch (err) {
+                messageEl.textContent = 'Error connecting to server';
+                messageEl.className = 'message error';
+                console.error('Login error:', err);
             }
+        });
+        
+        registerForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const name = document.getElementById('register-name').value;
+            const email = document.getElementById('register-email').value;
+            const password = document.getElementById('register-password').value;
+            const messageEl = document.getElementById('register-message');
+            
+            // Validate password
+            if (password.length < 8 || !/[a-zA-Z]/.test(password) || !/[0-9]/.test(password)) {
+                messageEl.textContent = 'Password must be at least 8 characters with letters and numbers';
+                messageEl.className = 'message error';
+                return;
+            }
+            
+            try {
+                const res = await fetch('https://heritage-backend-yf3u.onrender.com/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, password })
+                });
+                
+                const data = await res.json();
+                console.log('Register response:', data);
+                
+                if (res.ok) {
+                    messageEl.textContent = data.message;
+                    messageEl.className = 'message success';
+                    
+                    // Switch to login tab after successful registration
+                    setTimeout(() => {
+                        document.querySelector('.tab-btn[data-tab="login"]').click();
+                        document.getElementById('login-email').value = email;
+                        document.getElementById('login-message').textContent = 'Registration successful! Please login.';
+                        document.getElementById('login-message').className = 'message success';
+                    }, 1000);
+                } else {
+                    messageEl.textContent = data.message || 'Registration failed';
+                    messageEl.className = 'message error';
+                }
+            } catch (err) {
+                messageEl.textContent = 'Error connecting to server';
+                messageEl.className = 'message error';
+                console.error('Registration error:', err);
+            }
+        });
+    }
+
+    function showLoginRegisterModal() {
+        console.log('Showing login/register modal');
+        const modal = document.getElementById('login-register-modal');
+        if (modal) {
+            modal.classList.add('active');
+            document.body.classList.add('modal-blocked');
+        } else {
+            console.log('Modal element not found');
         }
     }
 
-    // Check session on page load
-    fetch('https://heritage-backend-yf3u.onrender.com/session', { credentials: 'include' })
-        .then(res => res.json())
-        .then(data => {
-            updateNavbar(data.logged_in);
-        });
+    // Initialize login modal on page load if needed
+    // Check if user is logged in from localStorage and show modal if needed
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('script.js: DOM loaded');
+    // Check if user is logged in from localStorage
+    const isLoggedIn = localStorage.getItem('logged_in') === 'true';
+    console.log('script.js: User logged in?', isLoggedIn);
+    
+    // Only show login modal if not logged in
+    if (!isLoggedIn) {
+        console.log('script.js: Not logged in, showing modal');
+        injectLoginRegisterModal();
+        showLoginRegisterModal();
+    }
 
-    // Logout button logic
+    // Add logout button event listener
+    const logoutBtn = document.getElementById('logout-btn');
     if (logoutBtn) {
         logoutBtn.addEventListener('click', function() {
-            fetch('http://localhost:5000/logout', { method: 'POST', credentials: 'include' })
+            console.log('Logout button clicked');
+            
+            // Clear localStorage
+            localStorage.removeItem('user');
+            localStorage.removeItem('logged_in');
+            
+            // Notify the server
+            fetch('https://heritage-backend-yf3u.onrender.com/logout', { method: 'POST' })
                 .then(res => res.json())
-                .then(() => {
-                    updateNavbar(false);
-                });
+                .catch(err => console.log('Logout notification error:', err));
+                
+            // Reload the page to show login modal
+            window.location.reload();
         });
     }
 });
-
-// --- Login/Register Modal as Login Wall for Not-Logged-In Users ---
-(function() {
-    // Only run on main pages (not login/register)
-    const isAuthPage = window.location.pathname.includes('login') || window.location.pathname.includes('register');
-    if (isAuthPage) return;
-
-    // Helper: inject modal HTML
-    function injectLoginRegisterModal() {
-        if (document.getElementById('login-register-modal')) return;
-        const modal = document.createElement('div');
-        modal.id = 'login-register-modal';
-        modal.innerHTML = `
-          <div class="modal-content">
-            <div style="font-size:2.5rem;color:#B8860B;margin-bottom:0.5rem;"><i class='fas fa-user-circle'></i></div>
-            <h2 class="modal-title">Welcome to Heritage Explorer!</h2>
-            <p class="modal-message">To get the best experience, please <b>Login</b> or <b>Register</b>.<br>Unlock personalized features and more!</p>
-            <div class="modal-btns">
-              <a href="login.html" class="modal-action-btn">Login</a>
-              <a href="register.html" class="modal-action-btn">Register</a>
-            </div>
-          </div>
-        `;
-        document.body.appendChild(modal);
-        // Add fade-in animation style and overlay if not present
-        if (!document.getElementById('modal-fadein-style')) {
-            const style = document.createElement('style');
-            style.id = 'modal-fadein-style';
-            style.textContent = `@keyframes fadeInModal { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
-            #login-register-modal .modal-content { animation: fadeInModal 0.4s; }
-            #login-register-modal { display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.45); justify-content: center; align-items: center; }
-            #login-register-modal.active { display: flex !important; }
-            #login-register-modal .modal-content { background: #fff8f0; border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.18); padding: 2.5rem 2rem 2rem 2rem; text-align: center; max-width: 350px; width: 90vw; position: relative; font-family: 'Poppins', sans-serif; }
-            #login-register-modal .modal-content h2 { color: #7c4a03; margin-bottom: 1rem; font-size: 1.5rem; }
-            #login-register-modal .modal-content p { color: #6d4c1a; margin-bottom: 1.5rem; font-size: 1.1rem; }
-            #login-register-modal .modal-content .modal-btns { display: flex; justify-content: center; gap: 1rem; margin-bottom: 1rem; }
-            #login-register-modal .modal-content .modal-btns a { background: #b8860b; color: #fff; border: none; border-radius: 8px; padding: 0.6rem 1.2rem; font-size: 1rem; text-decoration: none; font-weight: 500; transition: background 0.2s; }
-            #login-register-modal .modal-content .modal-btns a:hover { background: #7c4a03; }
-            #login-register-modal .modal-content .close-modal { display: none; } /* Hide close button for login wall */
-            body.modal-blocked > *:not(#login-register-modal) { filter: blur(3px) brightness(0.8); pointer-events: none !important; user-select: none; }
-            body.modal-blocked { overflow: hidden !important; }
-            `;
-            document.head.appendChild(style);
-        }
-    }
-
-    // Helper: show modal and block page
-    function showLoginRegisterModal() {
-        const modal = document.getElementById('login-register-modal');
-        if (modal) modal.classList.add('active');
-        document.body.classList.add('modal-blocked');
-    }
-    // Helper: unblock page (not used, but for future)
-    function hideLoginRegisterModal() {
-        const modal = document.getElementById('login-register-modal');
-        if (modal) modal.classList.remove('active');
-        document.body.classList.remove('modal-blocked');
-    }
-
-    // Check if user is logged in from localStorage
-    const isLoggedIn = localStorage.getItem('logged_in') === 'true';
-
-    // Only show login modal if not logged in
-    if (!isLoggedIn) {
-        injectLoginRegisterModal();
-        showLoginRegisterModal(); // Show immediately, block page
-    }
-
-    // --- Listen for logout and show modal again ---
-    document.addEventListener('DOMContentLoaded', function() {
-        const logoutBtn = document.getElementById('logout-btn');
-        if (logoutBtn) {
-            logoutBtn.addEventListener('click', function() {
-                fetch('https://heritage-backend-yf3u.onrender.com/logout', { method: 'POST', credentials: 'include' })
-                    .then(res => res.json())
-                    .then(() => {
-                        // Show login/register modal and block page after logout
-                        injectLoginRegisterModal();
-                        showLoginRegisterModal();
-                    });
-            });
-        }
-    });
 
 })();
 
