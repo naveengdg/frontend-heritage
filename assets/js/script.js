@@ -589,18 +589,126 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Initialize login modal on page load if needed
-    // Check if user is logged in from localStorage and show modal if needed
+    // Function to create and show the welcome modal
+function createWelcomeModal() {
+    console.log('Creating welcome modal');
+    if (document.getElementById('welcome-modal')) {
+        console.log('Welcome modal already exists');
+        return;
+    }
+    
+    const modalHTML = `
+    <div id="welcome-modal" class="modal">
+        <div class="modal-content">
+            <div class="user-icon">
+                <i class="fas fa-user-circle"></i>
+            </div>
+            <h2>Welcome to Heritage Explorer!</h2>
+            <p>To get the best experience, please <span>Login</span> or <span>Register</span>.</p>
+            <p>Unlock personalized features and more!</p>
+            <div class="modal-buttons">
+                <button id="welcome-login-btn" class="btn primary-btn">Login</button>
+                <button id="welcome-register-btn" class="btn primary-btn">Register</button>
+            </div>
+        </div>
+    </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    
+    // Add styles for the welcome modal
+    const style = document.createElement('style');
+    style.textContent = `
+        #welcome-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        #welcome-modal .modal-content {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        }
+        #welcome-modal .user-icon {
+            font-size: 40px;
+            color: #B8860B;
+            margin-bottom: 15px;
+        }
+        #welcome-modal h2 {
+            color: #7c4a03;
+            margin-bottom: 15px;
+        }
+        #welcome-modal p {
+            color: #6d4c1a;
+            margin-bottom: 10px;
+        }
+        #welcome-modal p span {
+            font-weight: bold;
+        }
+        #welcome-modal .modal-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        #welcome-modal .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        #welcome-modal .primary-btn {
+            background-color: #B8860B;
+            color: white;
+        }
+        #welcome-modal .primary-btn:hover {
+            background-color: #7c4a03;
+        }
+    `;
+    document.head.appendChild(style);
+    
+    // Add event listeners for the buttons
+    document.getElementById('welcome-login-btn').addEventListener('click', function() {
+        document.getElementById('welcome-modal').remove();
+        injectLoginRegisterModal();
+        showLoginRegisterModal();
+        // Show login tab
+        document.querySelector('.tab-btn[data-tab="login"]').click();
+    });
+    
+    document.getElementById('welcome-register-btn').addEventListener('click', function() {
+        document.getElementById('welcome-modal').remove();
+        injectLoginRegisterModal();
+        showLoginRegisterModal();
+        // Show register tab
+        document.querySelector('.tab-btn[data-tab="register"]').click();
+    });
+}
+
+// Check if user is logged in from localStorage and show appropriate modal
 document.addEventListener('DOMContentLoaded', function() {
     console.log('script.js: DOM loaded');
     // Check if user is logged in from localStorage
     const isLoggedIn = localStorage.getItem('logged_in') === 'true';
     console.log('script.js: User logged in?', isLoggedIn);
     
-    // Only show login modal if not logged in
+    // Only show welcome/login modal if not logged in
     if (!isLoggedIn) {
-        console.log('script.js: Not logged in, showing modal');
-        injectLoginRegisterModal();
-        showLoginRegisterModal();
+        console.log('script.js: Not logged in, showing welcome modal');
+        createWelcomeModal();
     }
 
     // Add logout button event listener
