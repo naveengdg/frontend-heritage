@@ -589,15 +589,19 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Initialize login modal on page load if needed
-    // Function to create and show the welcome modal
-function createWelcomeModal() {
-    console.log('Creating welcome modal');
+    // Function to create and show the login wall modal that matches the screenshot
+function createLoginWall() {
+    console.log('Creating login wall');
     if (document.getElementById('welcome-modal')) {
         console.log('Welcome modal already exists');
         return;
     }
     
-    const modalHTML = `
+    // Hide the entire page content
+    document.body.style.overflow = 'hidden';
+    
+    // Create the welcome modal exactly as shown in the screenshot
+    const welcomeModalHTML = `
     <div id="welcome-modal" class="modal">
         <div class="modal-content">
             <div class="user-icon">
@@ -607,16 +611,16 @@ function createWelcomeModal() {
             <p>To get the best experience, please <span>Login</span> or <span>Register</span>.</p>
             <p>Unlock personalized features and more!</p>
             <div class="modal-buttons">
-                <button id="welcome-login-btn" class="btn primary-btn">Login</button>
-                <button id="welcome-register-btn" class="btn primary-btn">Register</button>
+                <a href="#" id="welcome-login-btn" class="btn primary-btn">Login</a>
+                <a href="#" id="welcome-register-btn" class="btn primary-btn">Register</a>
             </div>
         </div>
     </div>
     `;
     
-    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    document.body.insertAdjacentHTML('beforeend', welcomeModalHTML);
     
-    // Add styles for the welcome modal
+    // Add styles for the welcome modal to match the screenshot exactly
     const style = document.createElement('style');
     style.textContent = `
         #welcome-modal {
@@ -629,7 +633,7 @@ function createWelcomeModal() {
             display: flex;
             justify-content: center;
             align-items: center;
-            z-index: 1000;
+            z-index: 9999;
         }
         #welcome-modal .modal-content {
             background-color: #fff;
@@ -648,10 +652,12 @@ function createWelcomeModal() {
         #welcome-modal h2 {
             color: #7c4a03;
             margin-bottom: 15px;
+            font-size: 22px;
         }
         #welcome-modal p {
             color: #6d4c1a;
             margin-bottom: 10px;
+            font-size: 16px;
         }
         #welcome-modal p span {
             font-weight: bold;
@@ -668,6 +674,9 @@ function createWelcomeModal() {
             border-radius: 5px;
             cursor: pointer;
             font-weight: 600;
+            font-size: 16px;
+            text-decoration: none;
+            display: inline-block;
             transition: all 0.3s ease;
         }
         #welcome-modal .primary-btn {
@@ -681,21 +690,90 @@ function createWelcomeModal() {
     document.head.appendChild(style);
     
     // Add event listeners for the buttons
-    document.getElementById('welcome-login-btn').addEventListener('click', function() {
-        document.getElementById('welcome-modal').remove();
+    document.getElementById('welcome-login-btn').addEventListener('click', function(e) {
+        e.preventDefault();
         injectLoginRegisterModal();
         showLoginRegisterModal();
         // Show login tab
         document.querySelector('.tab-btn[data-tab="login"]').click();
     });
     
-    document.getElementById('welcome-register-btn').addEventListener('click', function() {
-        document.getElementById('welcome-modal').remove();
+    document.getElementById('welcome-register-btn').addEventListener('click', function(e) {
+        e.preventDefault();
         injectLoginRegisterModal();
         showLoginRegisterModal();
         // Show register tab
         document.querySelector('.tab-btn[data-tab="register"]').click();
     });
+}
+
+// Function to show welcome back message for returning users
+function showWelcomeBackMessage() {
+    // Get user data
+    const userData = JSON.parse(localStorage.getItem('user') || '{}');
+    const userName = userData.name || 'User';
+    
+    // Create welcome back toast
+    const welcomeToast = document.createElement('div');
+    welcomeToast.id = 'welcome-back-toast';
+    welcomeToast.innerHTML = `
+        <div class="toast-icon"><i class="fas fa-user-check"></i></div>
+        <div class="toast-content">
+            <h3>Welcome back, ${userName}!</h3>
+            <p>Enjoy exploring Tamil Nadu's heritage</p>
+        </div>
+    `;
+    
+    document.body.appendChild(welcomeToast);
+    
+    // Add styles for the welcome toast
+    const style = document.createElement('style');
+    style.textContent = `
+        #welcome-back-toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: linear-gradient(135deg, #B8860B, #7c4a03);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+            animation: slideIn 0.5s ease, fadeOut 0.5s ease 4.5s forwards;
+            max-width: 350px;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; visibility: hidden; }
+        }
+        #welcome-back-toast .toast-icon {
+            font-size: 24px;
+        }
+        #welcome-back-toast .toast-content h3 {
+            margin: 0 0 5px 0;
+            font-size: 18px;
+        }
+        #welcome-back-toast .toast-content p {
+            margin: 0;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+    `;
+    document.head.appendChild(style);
+    
+    // Remove the toast after 5 seconds
+    setTimeout(() => {
+        if (welcomeToast && welcomeToast.parentNode) {
+            welcomeToast.parentNode.removeChild(welcomeToast);
+        }
+    }, 5000);
 }
 
 // Check if user is logged in from localStorage and show appropriate modal
@@ -726,8 +804,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 .then(res => res.json())
                 .catch(err => console.log('Logout notification error:', err));
                 
-            // Reload the page to show login modal
-            window.location.reload();
+            // Show the welcome modal immediately
+            createLoginWall();
+            
+            // Disable scrolling
+            document.body.style.overflow = 'hidden';
+            
+            // Update navbar
+            if (typeof updateNavbar === 'function') {
+                updateNavbar(false);
+            }
         });
     }
 });
