@@ -501,19 +501,14 @@ document.addEventListener('DOMContentLoaded', function() {
         document.body.classList.remove('modal-blocked');
     }
 
-    // Check session status on load
-    fetch('https://heritage-backend-yf3u.onrender.com/session', {
-        method: 'GET',
-        credentials: 'include'
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (!data.logged_in) {
-            injectLoginRegisterModal();
-            showLoginRegisterModal(); // Show immediately, block page
-        }
-    })
-    .catch(() => {/* ignore errors */});
+    // Check if user is logged in from localStorage
+    const isLoggedIn = localStorage.getItem('logged_in') === 'true';
+
+    // Only show login modal if not logged in
+    if (!isLoggedIn) {
+        injectLoginRegisterModal();
+        showLoginRegisterModal(); // Show immediately, block page
+    }
 
     // --- Listen for logout and show modal again ---
     document.addEventListener('DOMContentLoaded', function() {
