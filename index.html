@@ -271,23 +271,28 @@
             var modal = document.getElementById('login-register-modal');
             if (modal) { modal.classList.remove('active'); document.body.classList.remove('modal-blocked'); }
         } else {
-            // Check session on page load
-            fetch('https://heritage-backend-yf3u.onrender.com/session', { credentials: 'include' })
-                .then(res => res.json())
-                .then(data => {
-                    updateNavbar(data.logged_in);
-                });
+            // Check session from localStorage
+            const isLoggedIn = localStorage.getItem('logged_in') === 'true';
+            const userData = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')) : null;
+            updateNavbar(isLoggedIn);
         }
         // Logout button logic
         const logoutBtn = document.getElementById('logout-btn');
         logoutBtn.addEventListener('click', function() {
-            fetch('https://heritage-backend-yf3u.onrender.com/logout', { method: 'POST', credentials: 'include' })
+            // Clear localStorage
+            localStorage.removeItem('user');
+            localStorage.removeItem('logged_in');
+            
+            // Notify the server (optional)
+            fetch('https://heritage-backend-yf3u.onrender.com/logout', { method: 'POST' })
                 .then(res => res.json())
-                .then(() => {
-                    updateNavbar(false);
-                });
+                .catch(err => console.log('Logout notification error:', err));
+                
+            // Update UI
+            updateNavbar(false);
+            window.location.href = 'index.html';
         });
     });
     </script>
 </body>
-</html> 
+</html>
