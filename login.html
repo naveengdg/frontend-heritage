@@ -182,9 +182,12 @@
                     msgDiv.style.color = '#388e3c';
                     form.reset();
                     
-                    // Store user data and auth token in localStorage
+                    // Store user data in localStorage
                     localStorage.setItem('user', JSON.stringify(data.user));
                     localStorage.setItem('logged_in', 'true');
+                    
+                    // Set flag to show welcome toast on next page load
+                    sessionStorage.setItem('showWelcomeToast', 'true');
                     localStorage.setItem('showLoginWelcome', '1');
                     
                     // Redirect to home after a short delay

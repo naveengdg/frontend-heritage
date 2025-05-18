@@ -4,6 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tamil Nadu Heritage Explorer</title>
+    
+    <!-- Performance Optimizations -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="theme-color" content="#B8860B">
+    
+    <!-- Resource Preloading -->
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preload" href="assets/css/styles.css" as="style">
+    <link rel="preload" href="assets/js/script.js" as="script">
+    
+    <!-- Stylesheets -->
     <link rel="stylesheet" href="assets/css/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -24,17 +37,30 @@
         }
         #welcome-modal .modal-content {
             background-color: #fff;
-            padding: 30px;
-            border-radius: 10px;
+            padding: 35px;
+            border-radius: 20px;
             text-align: center;
             max-width: 400px;
             width: 90%;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25), 0 4px 10px rgba(184, 134, 11, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            animation: modalAppear 0.5s ease-out;
+        }
+        
+        @keyframes modalAppear {
+            0% { opacity: 0; transform: scale(0.9); }
+            100% { opacity: 1; transform: scale(1); }
         }
         #welcome-modal .user-icon {
-            font-size: 40px;
+            font-size: 45px;
             color: #B8860B;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #FFD700, #B8860B);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: inline-block;
+            filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.2));
         }
         #welcome-modal h2 {
             color: #7c4a03;
@@ -56,29 +82,124 @@
             margin-top: 20px;
         }
         #welcome-modal .btn {
-            padding: 10px 20px;
+            padding: 12px 24px;
             border: none;
-            border-radius: 5px;
+            border-radius: 30px;
             cursor: pointer;
             font-weight: 600;
             font-size: 16px;
             text-decoration: none;
             display: inline-block;
             transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
         #welcome-modal .primary-btn {
-            background-color: #B8860B;
+            background: linear-gradient(135deg, #B8860B, #8B4513);
             color: white;
         }
         #welcome-modal .primary-btn:hover {
-            background-color: #7c4a03;
+            background: linear-gradient(135deg, #8B4513, #B8860B);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(139, 69, 19, 0.3);
         }
         .hide-modal {
             display: none !important;
         }
+        
+        /* Loading Overlay Styles */
+        #loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.95);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            transition: opacity 0.3s ease;
+        }
+        
+        .spinner {
+            margin: 0 auto;
+            width: 70px;
+            text-align: center;
+        }
+        
+        .spinner > div {
+            width: 18px;
+            height: 18px;
+            background-color: #B8860B;
+            border-radius: 100%;
+            display: inline-block;
+            animation: sk-bouncedelay 1.4s infinite ease-in-out both;
+            margin: 0 3px;
+        }
+        
+        .spinner .bounce1 {
+            animation-delay: -0.32s;
+        }
+        
+        .spinner .bounce2 {
+            animation-delay: -0.16s;
+        }
+        
+        @keyframes sk-bouncedelay {
+            0%, 80%, 100% { 
+                transform: scale(0); 
+            } 40% { 
+                transform: scale(1.0); 
+            }
+        }
+        
+        /* Welcome Toast Notification Styles */
+        #welcome-toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: linear-gradient(135deg, #B8860B, #7c4a03);
+            color: white;
+            padding: 20px 25px;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transform: translateX(400px);
+            opacity: 0;
+            transition: transform 0.5s ease, opacity 0.5s ease;
+            max-width: 350px;
+        }
+        #welcome-toast.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        #welcome-toast .toast-icon {
+            font-size: 28px;
+        }
+        #welcome-toast .toast-content h3 {
+            margin: 0 0 8px 0;
+            font-size: 18px;
+        }
+        #welcome-toast .toast-content p {
+            margin: 0;
+            font-size: 14px;
+            opacity: 0.9;
+        }
     </style>
 </head>
 <body>
+    <!-- Loading Overlay -->
+    <div id="loading-overlay">
+        <div class="spinner">
+            <div class="bounce1"></div>
+            <div class="bounce2"></div>
+            <div class="bounce3"></div>
+        </div>
+    </div>
+    
     <!-- Welcome Modal -->
     <div id="welcome-modal">
         <div class="modal-content">
@@ -89,17 +210,19 @@
             <p>To get the best experience, please <span>Login</span> or <span>Register</span>.</p>
             <p>Unlock personalized features and more!</p>
             <div class="modal-buttons">
-                <a href="#" id="welcome-login-btn" class="btn primary-btn">Login</a>
-                <a href="#" id="welcome-register-btn" class="btn primary-btn">Register</a>
+                <a href="login.html" class="btn primary-btn">Login</a>
+                <a href="register.html" class="btn primary-btn">Register</a>
             </div>
         </div>
     </div>
     
-    <!-- Navigation -->
-    <nav class="navbar" style="display:flex;align-items:center;justify-content:space-between;gap:2rem;">
+    <!-- Main website content container - will be hidden until logged in -->
+    <div id="main-content">
+        <!-- Navigation -->
+        <nav class="navbar" style="display:flex;align-items:center;justify-content:space-between;gap:2rem;">
         <div class="logo" style="flex:0 0 auto;">
             <a href="index.html" style="display:flex;align-items:center;gap:0.5rem;text-decoration:none;color:inherit;">
-                <img src="assets/images/ChatGPT Image May 12, 2025, 07_14_14 PM.png" alt="Logo">
+                <img src="assets/images/ChatGPT Image May 12, 2025, 07_14_14 PM.png" alt="Logo" loading="eager">
                 <span>Heritage Explorer</span>
             </a>
         </div>
@@ -325,6 +448,18 @@
             <p data-i18n="copyright">&copy; 2024 Heritage Explorer. All rights reserved.</p>
         </div>
     </footer>
+    </div> <!-- End of main-content -->
+
+    <!-- Welcome Toast Notification -->
+    <div id="welcome-toast">
+        <div class="toast-icon">
+            <i class="fas fa-crown"></i>
+        </div>
+        <div class="toast-content">
+            <h3>Welcome back, <span id="user-name">Heritage Explorer</span>! ✨</h3>
+            <p>Enjoy your journey through Tamil Nadu's rich cultural heritage 🏛️ 🌟</p>
+        </div>
+    </div>
 
     <script src="assets/js/script.js"></script>
     <script>
@@ -416,45 +551,58 @@
             return localStorage.getItem('logged_in') === 'true';
         }
 
-        // Function to show/hide welcome modal
+        // Function to show/hide welcome modal and toggle main content visibility
         function toggleWelcomeModal() {
             const welcomeModal = document.getElementById('welcome-modal');
-            if (!welcomeModal) return;
+            const mainContent = document.getElementById('main-content');
+            if (!welcomeModal || !mainContent) return;
 
             if (isUserLoggedIn()) {
-                // User is logged in, hide the welcome modal
+                // User is logged in
+                // Hide the welcome modal
                 welcomeModal.classList.add('hide-modal');
+                // Show the main content
+                mainContent.style.display = 'block';
                 document.body.style.overflow = 'auto'; // Enable scrolling
+                
+                // Show welcome toast if this is a new login
+                if (sessionStorage.getItem('showWelcomeToast') === 'true') {
+                    showWelcomeToast();
+                    sessionStorage.removeItem('showWelcomeToast');
+                }
             } else {
-                // User is not logged in, show the welcome modal
+                // User is not logged in
+                // Show the welcome modal
                 welcomeModal.classList.remove('hide-modal');
+                // Hide the main content
+                mainContent.style.display = 'none';
                 document.body.style.overflow = 'hidden'; // Disable scrolling
             }
         }
+        
+        // Function to show welcome toast notification
+        function showWelcomeToast() {
+            // Get user data from localStorage
+            const userData = JSON.parse(localStorage.getItem('user') || '{}');
+            const userName = userData.name || 'Heritage Explorer';
+            
+            // Set user name in toast
+            document.getElementById('user-name').textContent = userName;
+            
+            // Show the toast
+            const toast = document.getElementById('welcome-toast');
+            if (toast) {
+                toast.classList.add('show');
+                
+                // Hide the toast after 5 seconds
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                }, 5000);
+            }
+        }
 
-        // Handle login button click in welcome modal
-        document.getElementById('welcome-login-btn').addEventListener('click', function(e) {
-            e.preventDefault();
-            // Hide welcome modal
-            document.getElementById('welcome-modal').classList.add('hide-modal');
-            // Show login form
-            injectLoginRegisterModal();
-            showLoginRegisterModal();
-            // Show login tab
-            document.querySelector('.tab-btn[data-tab="login"]').click();
-        });
-
-        // Handle register button click in welcome modal
-        document.getElementById('welcome-register-btn').addEventListener('click', function(e) {
-            e.preventDefault();
-            // Hide welcome modal
-            document.getElementById('welcome-modal').classList.add('hide-modal');
-            // Show register form
-            injectLoginRegisterModal();
-            showLoginRegisterModal();
-            // Show register tab
-            document.querySelector('.tab-btn[data-tab="register"]').click();
-        });
+        // No need for event listeners on the welcome modal buttons anymore
+        // since they are direct links to login.html and register.html
 
         // Check login status when DOM is loaded
         document.addEventListener('DOMContentLoaded', function() {

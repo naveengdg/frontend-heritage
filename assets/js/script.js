@@ -115,9 +115,55 @@ window.addEventListener('scroll', () => {
     hero.style.backgroundPositionY = scrolled * 0.5 + 'px';
 });
 
+// Page transition and loading optimization
+
 // Add loading animation
 window.addEventListener('load', () => {
     document.body.classList.add('loaded');
+    
+    // Remove loading overlay after page is fully loaded
+    const loadingOverlay = document.getElementById('loading-overlay');
+    if (loadingOverlay) {
+        loadingOverlay.style.opacity = '0';
+        setTimeout(() => {
+            loadingOverlay.style.display = 'none';
+        }, 300);
+    }
+});
+
+// Add smooth page transitions
+document.addEventListener('DOMContentLoaded', function() {
+    // Add transition class to all links
+    const links = document.querySelectorAll('a:not([target="_blank"])');
+    links.forEach(link => {
+        // Only apply to internal links
+        if (link.hostname === window.location.hostname) {
+            link.addEventListener('click', function(e) {
+                // Skip if modifier keys are pressed
+                if (e.metaKey || e.ctrlKey) return;
+                
+                const href = this.getAttribute('href');
+                // Skip for anchors on the same page
+                if (href.startsWith('#')) return;
+                
+                e.preventDefault();
+                
+                // Show loading overlay
+                const loadingOverlay = document.getElementById('loading-overlay');
+                if (loadingOverlay) {
+                    loadingOverlay.style.display = 'flex';
+                    setTimeout(() => {
+                        loadingOverlay.style.opacity = '1';
+                    }, 10);
+                }
+                
+                // Navigate after a short delay
+                setTimeout(() => {
+                    window.location.href = href;
+                }, 300);
+            });
+        }
+    });
 });
 
 // Mobile menu toggle (for responsive design)
