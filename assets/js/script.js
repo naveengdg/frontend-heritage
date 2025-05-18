@@ -804,16 +804,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 .then(res => res.json())
                 .catch(err => console.log('Logout notification error:', err));
                 
-            // Show the welcome modal immediately
-            createLoginWall();
-            
-            // Disable scrolling
-            document.body.style.overflow = 'hidden';
-            
             // Update navbar
             if (typeof updateNavbar === 'function') {
                 updateNavbar(false);
             }
+            
+            // Show the welcome modal from index.html by reloading the page
+            // This ensures the welcome modal appears correctly
+            window.location.href = 'index.html';
         });
     }
 });

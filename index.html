@@ -7,8 +7,94 @@
     <link rel="stylesheet" href="assets/css/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Welcome Modal Styles -->
+    <style>
+        #welcome-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+        #welcome-modal .modal-content {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        }
+        #welcome-modal .user-icon {
+            font-size: 40px;
+            color: #B8860B;
+            margin-bottom: 15px;
+        }
+        #welcome-modal h2 {
+            color: #7c4a03;
+            margin-bottom: 15px;
+            font-size: 22px;
+        }
+        #welcome-modal p {
+            color: #6d4c1a;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        #welcome-modal p span {
+            font-weight: bold;
+        }
+        #welcome-modal .modal-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        #welcome-modal .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 16px;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s ease;
+        }
+        #welcome-modal .primary-btn {
+            background-color: #B8860B;
+            color: white;
+        }
+        #welcome-modal .primary-btn:hover {
+            background-color: #7c4a03;
+        }
+        .hide-modal {
+            display: none !important;
+        }
+    </style>
 </head>
 <body>
+    <!-- Welcome Modal -->
+    <div id="welcome-modal">
+        <div class="modal-content">
+            <div class="user-icon">
+                <i class="fas fa-user-circle"></i>
+            </div>
+            <h2>Welcome to Heritage Explorer!</h2>
+            <p>To get the best experience, please <span>Login</span> or <span>Register</span>.</p>
+            <p>Unlock personalized features and more!</p>
+            <div class="modal-buttons">
+                <a href="#" id="welcome-login-btn" class="btn primary-btn">Login</a>
+                <a href="#" id="welcome-register-btn" class="btn primary-btn">Register</a>
+            </div>
+        </div>
+    </div>
+    
     <!-- Navigation -->
     <nav class="navbar" style="display:flex;align-items:center;justify-content:space-between;gap:2rem;">
         <div class="logo" style="flex:0 0 auto;">
@@ -321,6 +407,79 @@
             });
         }
     });
+    </script>
+
+    <!-- Welcome Modal Script -->
+    <script>
+        // Function to check if user is logged in
+        function isUserLoggedIn() {
+            return localStorage.getItem('logged_in') === 'true';
+        }
+
+        // Function to show/hide welcome modal
+        function toggleWelcomeModal() {
+            const welcomeModal = document.getElementById('welcome-modal');
+            if (!welcomeModal) return;
+
+            if (isUserLoggedIn()) {
+                // User is logged in, hide the welcome modal
+                welcomeModal.classList.add('hide-modal');
+                document.body.style.overflow = 'auto'; // Enable scrolling
+            } else {
+                // User is not logged in, show the welcome modal
+                welcomeModal.classList.remove('hide-modal');
+                document.body.style.overflow = 'hidden'; // Disable scrolling
+            }
+        }
+
+        // Handle login button click in welcome modal
+        document.getElementById('welcome-login-btn').addEventListener('click', function(e) {
+            e.preventDefault();
+            // Hide welcome modal
+            document.getElementById('welcome-modal').classList.add('hide-modal');
+            // Show login form
+            injectLoginRegisterModal();
+            showLoginRegisterModal();
+            // Show login tab
+            document.querySelector('.tab-btn[data-tab="login"]').click();
+        });
+
+        // Handle register button click in welcome modal
+        document.getElementById('welcome-register-btn').addEventListener('click', function(e) {
+            e.preventDefault();
+            // Hide welcome modal
+            document.getElementById('welcome-modal').classList.add('hide-modal');
+            // Show register form
+            injectLoginRegisterModal();
+            showLoginRegisterModal();
+            // Show register tab
+            document.querySelector('.tab-btn[data-tab="register"]').click();
+        });
+
+        // Check login status when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            toggleWelcomeModal();
+        });
+
+        // Also check login status when storage changes (for example, after login/logout)
+        window.addEventListener('storage', function(e) {
+            if (e.key === 'logged_in') {
+                toggleWelcomeModal();
+            }
+        });
+
+        // Handle the logout button to show welcome modal again
+        const logoutBtn = document.getElementById('logout-btn');
+        if (logoutBtn) {
+            const originalClickHandler = logoutBtn.onclick;
+            logoutBtn.onclick = function(e) {
+                if (originalClickHandler) {
+                    originalClickHandler.call(this, e);
+                }
+                // Show welcome modal again
+                toggleWelcomeModal();
+            };
+        }
     </script>
 </body>
 </html>
