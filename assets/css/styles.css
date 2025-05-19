@@ -613,11 +613,15 @@ footer {
         margin-bottom: 0;
         justify-content: flex-start;
     }
+    .logo img {
+        width: 32px;
+        height: 32px;
+    }
     .mobile-menu-btn {
         display: block !important;
         background: none;
         border: none;
-        font-size: 2rem;
+        font-size: 1.8rem;
         color: #7c4a03;
         cursor: pointer;
         z-index: 1101;
@@ -638,7 +642,7 @@ footer {
     .navbar.nav-open .nav-links {
         flex-direction: column;
         gap: 1.2rem;
-        width: 100vw;
+        width: 100%;
         background: #fff8e7;
         position: absolute;
         top: 60px;
@@ -653,14 +657,14 @@ footer {
     .navbar.nav-open .language-selector {
         display: flex !important;
         justify-content: center;
-        width: 100vw;
+        width: 100%;
         margin: 0.5rem 0 0.5rem 0;
     }
     .navbar.nav-open .auth-links {
         display: flex !important;
         flex-direction: row;
         gap: 0.7rem;
-        width: 100vw;
+        width: 100%;
         justify-content: center;
         margin-bottom: 0.5rem;
     }
@@ -705,6 +709,38 @@ footer {
         font-size: 0.98rem;
         padding: 0.5rem 1rem;
     }
+    
+    /* About page mobile styles */
+    .about-container {
+        margin: 100px auto 30px auto;
+        padding: 1.5rem 1rem 1rem 1rem;
+        width: 90%;
+    }
+    
+    /* Interactive map mobile styles */
+    .map-container {
+        height: auto;
+        min-height: 300px;
+    }
+    
+    /* Voice guide mobile styles */
+    .voice-guide-container {
+        width: 90%;
+        padding: 1.5rem 1rem;
+    }
+    
+    /* AI guide mobile styles */
+    .ai-guide-container {
+        width: 90%;
+        padding: 1.5rem 1rem;
+    }
+    
+    /* Login/Register mobile styles */
+    .auth-container {
+        width: 90%;
+        padding: 1.5rem 1rem;
+        margin-top: 80px;
+    }
 }
 
 @media (max-width: 500px) {
@@ -713,6 +749,10 @@ footer {
     }
     .logo span {
         font-size: 1.1rem;
+    }
+    .logo img {
+        width: 28px;
+        height: 28px;
     }
     .site-card img {
         height: 90px;
@@ -734,6 +774,45 @@ footer {
         width: 100%;
         font-size: 0.95rem;
         padding: 0.5rem 0;
+    }
+    
+    /* Hero section adjustments */
+    .hero h1 {
+        font-size: 1.7rem;
+    }
+    .hero p {
+        font-size: 0.9rem;
+    }
+    .cta-button {
+        padding: 0.9rem 2rem;
+        font-size: 1rem;
+    }
+    
+    /* About page mobile styles */
+    .about-container {
+        margin: 80px auto 20px auto;
+    }
+    .about-header h2 {
+        font-size: 1.5rem;
+    }
+    .about-header p {
+        font-size: 0.9rem;
+    }
+    .about-message-btn {
+        padding: 0.6rem 1.2rem;
+        font-size: 0.9rem;
+    }
+    
+    /* Heritage site detail pages */
+    .site-detail-container {
+        padding: 1rem;
+        margin-top: 70px;
+    }
+    .site-detail-header h1 {
+        font-size: 1.5rem;
+    }
+    .site-detail-content p {
+        font-size: 0.9rem;
     }
 }
 
@@ -757,6 +836,37 @@ footer {
     .auth-btn, #logout-btn {
         font-size: 0.98rem;
         padding: 0.5rem 0.8rem;
+    }
+    
+    /* Grid layouts */
+    .sites-grid, .features-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+    
+    /* Section spacing */
+    .featured-sites, .features, .about, .contact {
+        padding: 3rem 1rem;
+    }
+    
+    /* Section headers */
+    .featured-sites h2, .features h2, .contact h2 {
+        font-size: 1.8rem;
+        margin-bottom: 2rem;
+    }
+    
+    /* Contact form */
+    .contact-form input, .contact-form textarea {
+        padding: 0.8rem;
+    }
+    
+    /* Footer adjustments */
+    .footer-content {
+        grid-template-columns: 1fr;
+        text-align: center;
+    }
+    .social-links {
+        justify-content: center;
     }
 }
 

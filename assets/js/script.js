@@ -10,11 +10,20 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     });
 });
 
-// Navbar scroll effect
+// Navbar scroll effect - optimized with debounce for better performance
 const navbar = document.querySelector('.navbar');
 let lastScroll = 0;
+let scrollTimeout;
 
-window.addEventListener('scroll', () => {
+// Debounced scroll handler for better performance
+function debounceScroll(fn, delay) {
+    return function() {
+        clearTimeout(scrollTimeout);
+        scrollTimeout = setTimeout(() => fn(), delay);
+    };
+}
+
+function handleScroll() {
     const currentScroll = window.pageYOffset;
     
     if (currentScroll <= 0) {
@@ -32,7 +41,10 @@ window.addEventListener('scroll', () => {
         navbar.classList.add('scroll-up');
     }
     lastScroll = currentScroll;
-});
+}
+
+// Use passive event listener for better scroll performance
+window.addEventListener('scroll', debounceScroll(handleScroll, 10), { passive: true });
 
 // Intersection Observer for fade-in animations
 const observerOptions = {
@@ -108,41 +120,73 @@ document.querySelectorAll('.feature-card').forEach(card => {
     });
 });
 
-// Add parallax effect to hero section
-window.addEventListener('scroll', () => {
-    const hero = document.querySelector('.hero');
+// Add parallax effect to hero section - optimized with requestAnimationFrame
+let ticking = false;
+let heroElement = null;
+
+function updateParallax() {
+    if (!heroElement) {
+        heroElement = document.querySelector('.hero');
+        if (!heroElement) return;
+    }
+    
     const scrolled = window.pageYOffset;
-    hero.style.backgroundPositionY = scrolled * 0.5 + 'px';
-});
+    heroElement.style.backgroundPositionY = scrolled * 0.5 + 'px';
+    ticking = false;
+}
 
-// Page transition and loading optimization
+window.addEventListener('scroll', () => {
+    if (!ticking) {
+        requestAnimationFrame(updateParallax);
+        ticking = true;
+    }
+}, { passive: true });
 
-// Add loading animation
+// Page transition and loading optimization - improved for faster loading
+
+// Add loading animation with faster display
 window.addEventListener('load', () => {
+    // Mark page as loaded
     document.body.classList.add('loaded');
     
-    // Remove loading overlay after page is fully loaded
+    // Remove loading overlay immediately
     const loadingOverlay = document.getElementById('loading-overlay');
     if (loadingOverlay) {
-        loadingOverlay.style.opacity = '0';
-        setTimeout(() => {
-            loadingOverlay.style.display = 'none';
-        }, 300);
+        loadingOverlay.style.display = 'none';
     }
+    
+    // Lazy load non-critical resources
+    setTimeout(() => {
+        // Load any deferred resources here
+        if (window.innerWidth > 768) {
+            // Only load heavy resources on desktop
+            const additionalStyles = document.createElement('link');
+            additionalStyles.rel = 'stylesheet';
+            additionalStyles.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/brands.min.css';
+            document.head.appendChild(additionalStyles);
+        }
+    }, 1000);
 });
 
-// Add optimized page transitions
+// Optimized page transitions for better performance
 document.addEventListener('DOMContentLoaded', function() {
-    // Preload pages when hovering over links
-    const links = document.querySelectorAll('a:not([target="_blank"])');
-    links.forEach(link => {
+    // Only preload important pages to reduce unnecessary network requests
+    const importantLinks = document.querySelectorAll('a.cta-button, a.explore-btn, .nav-links a');
+    
+    // Track which pages we've already preloaded
+    const preloadedPages = new Set();
+    
+    importantLinks.forEach(link => {
         // Only apply to internal links
-        if (link.hostname === window.location.hostname) {
-            // Preload on hover
+        if (link.hostname === window.location.hostname || !link.hostname) {
+            // Preload on hover, but only for non-anchor links
             link.addEventListener('mouseenter', function() {
                 const href = this.getAttribute('href');
-                // Skip for anchors on the same page
-                if (href.startsWith('#')) return;
+                // Skip for anchors on the same page or already preloaded pages
+                if (href.startsWith('#') || preloadedPages.has(href)) return;
+                
+                // Add to preloaded set
+                preloadedPages.add(href);
                 
                 // Preload the page
                 const preloadLink = document.createElement('link');
@@ -151,7 +195,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.head.appendChild(preloadLink);
             });
             
-            // Handle click with optimized transition
+            // Faster page transitions
             link.addEventListener('click', function(e) {
                 // Skip if modifier keys are pressed
                 if (e.metaKey || e.ctrlKey) return;
@@ -160,36 +204,28 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Skip for anchors on the same page
                 if (href.startsWith('#')) return;
                 
-                e.preventDefault();
-                
-                // Show loading overlay with reduced delay
-                const loadingOverlay = document.getElementById('loading-overlay');
-                if (loadingOverlay) {
-                    loadingOverlay.style.display = 'flex';
-                    requestAnimationFrame(() => {
-                        loadingOverlay.style.opacity = '1';
-                    });
-                }
-                
-                // Navigate with minimal delay
-                setTimeout(() => {
-                    window.location.href = href;
-                }, 150); // Reduced from 300ms to 150ms for faster response
+                // Don't prevent default for normal navigation
+                // This allows the browser to handle navigation naturally
+                // which is often faster than our custom implementation
             });
         }
     });
     
-    // Use requestIdleCallback to preload common pages when browser is idle
+    // Only preload the most critical pages when browser is idle
     if ('requestIdleCallback' in window) {
         requestIdleCallback(() => {
-            const commonPages = ['index.html', 'login.html', 'register.html'];
-            commonPages.forEach(page => {
-                const link = document.createElement('link');
-                link.rel = 'prefetch';
-                link.href = page;
-                document.head.appendChild(link);
+            // Only preload the homepage and login page
+            const criticalPages = ['index.html', 'login.html'];
+            criticalPages.forEach(page => {
+                if (!preloadedPages.has(page)) {
+                    preloadedPages.add(page);
+                    const link = document.createElement('link');
+                    link.rel = 'prefetch';
+                    link.href = page;
+                    document.head.appendChild(link);
+                }
             });
-        });
+        }, { timeout: 2000 });
     }
 });
 
@@ -198,54 +234,110 @@ const createMobileMenu = () => {
     const navbar = document.querySelector('.navbar');
     const navLinks = document.querySelector('.nav-links');
     const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
+    
     if (!mobileMenuBtn) return;
+    
+    // Make mobile menu button visible
+    mobileMenuBtn.style.display = 'block';
+    
     // Toggle mobile menu
     mobileMenuBtn.addEventListener('click', () => {
         navbar.classList.toggle('nav-open');
     });
-    // Optional: Close menu when a link is clicked (for better UX)
-    navLinks.querySelectorAll('a').forEach(link => {
-        link.addEventListener('click', () => {
-            navbar.classList.remove('nav-open');
+    
+    // Close menu when a link is clicked (for better UX)
+    if (navLinks) {
+        navLinks.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', () => {
+                navbar.classList.remove('nav-open');
+            });
         });
+    }
+    
+    // Close menu when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!navbar.contains(e.target) && navbar.classList.contains('nav-open')) {
+            navbar.classList.remove('nav-open');
+        }
     });
 };
 
 // Initialize mobile menu after DOM is loaded
 window.addEventListener('DOMContentLoaded', createMobileMenu);
 
-// Add CSS class for mobile menu
+// Add CSS class for mobile menu - we'll use this for browsers that don't support the styles in the main CSS
 const style = document.createElement('style');
 style.textContent = `
     .mobile-menu-btn {
         display: none;
         background: none;
         border: none;
-        font-size: 1.5rem;
+        font-size: 1.8rem;
         cursor: pointer;
-        color: #333;
+        color: #7c4a03;
+        z-index: 1101;
+    }
+    
+    .nav-right {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
     }
     
     @media (max-width: 768px) {
-        .mobile-menu-btn {
-            display: block;
+        .navbar {
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.7rem 1rem;
+            position: relative;
+        }
+        
+        .logo {
+            margin-bottom: 0;
+            justify-content: flex-start;
         }
         
         .nav-links {
-            position: fixed;
-            top: 70px;
-            left: 0;
-            width: 100%;
-            background: white;
-            padding: 1rem;
-            flex-direction: column;
-            align-items: center;
-            transform: translateY(-100%);
-            transition: transform 0.3s ease;
+            display: none;
         }
         
-        .nav-links.active {
-            transform: translateY(0);
+        .language-selector,
+        .auth-links {
+            display: none;
+        }
+        
+        .navbar.nav-open .nav-links {
+            display: flex;
+            flex-direction: column;
+            gap: 1.2rem;
+            width: 100%;
+            background: #fff8e7;
+            position: absolute;
+            top: 60px;
+            left: 0;
+            z-index: 1100;
+            box-shadow: 0 4px 16px rgba(139,69,19,0.08);
+            padding: 1.5rem 0 1rem 0;
+            align-items: center;
+            border-bottom-left-radius: 18px;
+            border-bottom-right-radius: 18px;
+        }
+        
+        .navbar.nav-open .language-selector {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+            margin: 0.5rem 0;
+        }
+        
+        .navbar.nav-open .auth-links {
+            display: flex;
+            flex-direction: row;
+            gap: 0.7rem;
+            width: 100%;
+            justify-content: center;
+            margin: 0.5rem 0;
         }
     }
 `;
