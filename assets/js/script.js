@@ -195,7 +195,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.head.appendChild(preloadLink);
             });
             
-            // Faster page transitions
+            // Faster page transitions with loading indicator
             link.addEventListener('click', function(e) {
                 // Skip if modifier keys are pressed
                 if (e.metaKey || e.ctrlKey) return;
@@ -204,9 +204,21 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Skip for anchors on the same page
                 if (href.startsWith('#')) return;
                 
+                // Show a brief loading indicator for better user experience
+                const loadingOverlay = document.getElementById('loading-overlay');
+                if (loadingOverlay) {
+                    // Make loading overlay visible but with reduced opacity for faster perceived loading
+                    loadingOverlay.style.opacity = '0.5';
+                    loadingOverlay.style.display = 'flex';
+                    
+                    // Hide it after a short delay if navigation hasn't completed
+                    setTimeout(() => {
+                        loadingOverlay.style.display = 'none';
+                    }, 800); // Short timeout for better perceived performance
+                }
+                
                 // Don't prevent default for normal navigation
                 // This allows the browser to handle navigation naturally
-                // which is often faster than our custom implementation
             });
         }
     });
@@ -237,8 +249,23 @@ const createMobileMenu = () => {
     
     if (!mobileMenuBtn) return;
     
-    // Make mobile menu button visible
-    mobileMenuBtn.style.display = 'block';
+    // Only show mobile menu button on small screens
+    if (window.innerWidth <= 768) {
+        mobileMenuBtn.style.display = 'block';
+    } else {
+        mobileMenuBtn.style.display = 'none';
+    }
+    
+    // Handle window resize
+    window.addEventListener('resize', () => {
+        if (window.innerWidth <= 768) {
+            mobileMenuBtn.style.display = 'block';
+        } else {
+            mobileMenuBtn.style.display = 'none';
+            // Close the menu if it's open and screen is resized to desktop
+            navbar.classList.remove('nav-open');
+        }
+    });
     
     // Toggle mobile menu
     mobileMenuBtn.addEventListener('click', () => {
