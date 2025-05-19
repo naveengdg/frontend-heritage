@@ -209,9 +209,16 @@
     </style>
 </head>
 <body>
-    <!-- Loading Overlay - Optimized for faster perceived loading -->
+    <!-- Loading Overlay - Professional dot animation -->
     <div id="loading-overlay" style="display:none;">
-        <div class="spinner"></div>
+        <div class="loading-dots">
+            <div class="loading-text">Loading Heritage Explorer</div>
+            <div class="dots">
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+            </div>
+        </div>
     </div>
     <script>
     // Check login status immediately before page renders
@@ -219,15 +226,18 @@
         // Check if user is logged in from localStorage
         const isLoggedIn = localStorage.getItem('logged_in') === 'true';
         
-        // If logged in, hide the welcome modal immediately
+        // Set the appropriate class on the HTML element
         if (isLoggedIn) {
             // Add a style tag to hide the welcome modal
             const style = document.createElement('style');
             style.textContent = '#welcome-modal { display: none !important; }';
             document.head.appendChild(style);
             
-            // Also make sure main content is visible
+            // Set logged-in class
             document.documentElement.classList.add('logged-in');
+        } else {
+            // Set not-logged-in class
+            document.documentElement.classList.add('not-logged-in');
         }
     })();
     
