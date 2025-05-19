@@ -62,6 +62,19 @@
         <div class="spinner"></div>
     </div>
     
+    <script>
+    // Check login status immediately before page renders
+    (function() {
+        // Check if user is logged in from localStorage
+        const isLoggedIn = localStorage.getItem('logged_in') === 'true';
+        
+        // If logged in, add logged-in class to html element
+        if (isLoggedIn) {
+            document.documentElement.classList.add('logged-in');
+        }
+    })();
+    </script>
+    
     <!-- Navigation -->
     <nav class="navbar">
         <div class="logo">

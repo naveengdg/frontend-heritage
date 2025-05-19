@@ -214,6 +214,23 @@
         <div class="spinner"></div>
     </div>
     <script>
+    // Check login status immediately before page renders
+    (function() {
+        // Check if user is logged in from localStorage
+        const isLoggedIn = localStorage.getItem('logged_in') === 'true';
+        
+        // If logged in, hide the welcome modal immediately
+        if (isLoggedIn) {
+            // Add a style tag to hide the welcome modal
+            const style = document.createElement('style');
+            style.textContent = '#welcome-modal { display: none !important; }';
+            document.head.appendChild(style);
+            
+            // Also make sure main content is visible
+            document.documentElement.classList.add('logged-in');
+        }
+    })();
+    
     // Show content immediately rather than waiting for full page load
     document.addEventListener('DOMContentLoaded', function() {
         document.body.classList.add('loaded');

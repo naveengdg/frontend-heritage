@@ -640,6 +640,16 @@ footer {
     to { opacity: 1; }
 }
 
+/* Ensure main content is visible immediately when logged in */
+html.logged-in #welcome-modal {
+    display: none !important;
+}
+
+html.logged-in #main-content {
+    display: block !important;
+    opacity: 1 !important;
+}
+
 /* Desktop navbar styles */
 .navbar {
     display: flex;
